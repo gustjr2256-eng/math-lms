@@ -49,10 +49,12 @@ export default async function SubmitPage({
   const cls = (hw as unknown as { classes: { name: string } | { name: string }[] | null }).classes
   const className = Array.isArray(cls) ? cls[0]?.name : cls?.name
 
+  // 재원(ACTIVE) 학생만 이름 선택지에 노출 (퇴원/신규 제외)
   const { data: students } = await admin
     .from('students')
     .select('id, name')
     .eq('class_id', hw.class_id)
+    .eq('status', 'ACTIVE')
     .order('name')
 
   return (

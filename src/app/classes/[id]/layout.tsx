@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireApproved } from '@/lib/auth'
-import { LogoutButton } from '@/components/auth/LogoutButton'
+import { AppShell } from '@/components/layout/AppShell'
 import { ClassTabs } from '@/components/classes/ClassTabs'
 
 // 반 대시보드 공통 레이아웃: 반 헤더 + 탭. 접근 권한은 RLS가 판정.
@@ -13,7 +13,7 @@ export default async function ClassLayout({
   children: React.ReactNode
 }) {
   const { id } = await params
-  const { supabase } = await requireApproved()
+  const { supabase, isAdmin, profile } = await requireApproved()
 
   const { data: cls } = await supabase
     .from('classes')
@@ -28,26 +28,24 @@ export default async function ClassLayout({
   const teacher = Array.isArray(rawTeacher) ? rawTeacher[0] ?? null : rawTeacher
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <Link href="/classes" className="text-sm text-zinc-500 hover:underline">
-          ← 반 목록
-        </Link>
-        <LogoutButton />
-      </header>
+    <AppShell name={profile?.name} isAdmin={isAdmin}>
+      <Link
+        href="/classes"
+        className="text-sm text-brand/60 hover:underline dark:text-zinc-400"
+      >
+        ← 반 목록
+      </Link>
 
-      <div className="mx-auto max-w-5xl px-6 pt-8">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{cls.name}</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          {cls.subject} · {cls.day_of_week} · {cls.time} · 담당 {teacher?.name ?? '미지정'}
-        </p>
+      <h1 className="mt-3 text-2xl font-bold text-brand dark:text-zinc-50">{cls.name}</h1>
+      <p className="mt-1 text-sm text-brand/70 dark:text-zinc-400">
+        {cls.subject} · {cls.day_of_week} · {cls.time} · 담당 {teacher?.name ?? '미지정'}
+      </p>
 
-        <div className="mt-6">
-          <ClassTabs classId={id} />
-        </div>
+      <div className="mt-6">
+        <ClassTabs classId={id} />
       </div>
 
-      <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
-    </div>
+      <div className="mt-8">{children}</div>
+    </AppShell>
   )
 }

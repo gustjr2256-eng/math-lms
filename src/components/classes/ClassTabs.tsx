@@ -18,7 +18,7 @@ export function ClassTabs({ classId }: { classId: string }) {
   ]
 
   return (
-    <nav className="flex gap-1 border-b border-zinc-200 dark:border-zinc-800">
+    <nav className="flex gap-1 border-b border-cream-line dark:border-zinc-800">
       {tabs.map((t) => {
         const active = t.exact ? pathname === t.href : pathname.startsWith(t.href)
         return (
@@ -28,13 +28,13 @@ export function ClassTabs({ classId }: { classId: string }) {
             className={
               'relative px-4 py-2.5 text-sm font-medium transition-colors ' +
               (active
-                ? 'text-zinc-900 dark:text-zinc-50'
-                : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200')
+                ? 'text-brand dark:text-zinc-50'
+                : 'text-brand/50 hover:text-brand dark:text-zinc-400 dark:hover:text-zinc-200')
             }
           >
             {t.label}
             {active && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-zinc-900 dark:bg-zinc-50" />
+              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand dark:bg-zinc-50" />
             )}
           </Link>
         )

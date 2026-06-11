@@ -41,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 로컬 데모 계정 시드(자격증명 하드코딩) — 커밋 제외
+scripts/seed-owner.mjs
