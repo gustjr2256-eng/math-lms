@@ -8,15 +8,12 @@ import {
   type AdminStudent,
   type StudentStatus,
 } from '@/lib/students'
-import {
-  deleteStudent,
-  setStudentStatus,
-  assignStudents,
-} from '@/app/actions/students'
+import { deleteStudent, setStudentStatus, assignStudents } from '@/app/actions/students'
 import { StudentFormModal } from './StudentFormModal'
 
 type Cls = { id: string; name: string }
 type Filter = 'ALL' | StudentStatus
+type GroupBy = 'none' | 'school' | 'grade'
 
 export function StudentAdminTable({
   students,
@@ -26,8 +23,12 @@ export function StudentAdminTable({
   classes: Cls[]
 }) {
   const [filter, setFilter] = useState<Filter>('ALL')
+  const [search, setSearch] = useState('')
+  const [schoolFilter, setSchoolFilter] = useState('')
+  const [gradeFilter, setGradeFilter] = useState('')
+  const [groupBy, setGroupBy] = useState<GroupBy>('none')
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [bulkClass, setBulkClass] = useState<string>('')
+  const [bulkClass, setBulkClass] = useState('')
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<AdminStudent | null>(null)
   const [pending, startTransition] = useTransition()
@@ -38,10 +39,39 @@ export function StudentAdminTable({
     return c
   }, [students])
 
-  const filtered = useMemo(
-    () => (filter === 'ALL' ? students : students.filter((s) => s.status === filter)),
-    [students, filter]
+  const schools = useMemo(
+    () => [...new Set(students.map((s) => s.school).filter((v): v is string => !!v))].sort(),
+    [students]
   )
+  const grades = useMemo(
+    () => [...new Set(students.map((s) => s.grade).filter(Boolean))].sort(),
+    [students]
+  )
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return students.filter(
+      (s) =>
+        (filter === 'ALL' || s.status === filter) &&
+        (!schoolFilter || s.school === schoolFilter) &&
+        (!gradeFilter || s.grade === gradeFilter) &&
+        (!q ||
+          s.name.toLowerCase().includes(q) ||
+          (s.school ?? '').toLowerCase().includes(q))
+    )
+  }, [students, filter, schoolFilter, gradeFilter, search])
+
+  // 구분(그룹) 보기 — 학교별 / 학년별
+  const groups = useMemo(() => {
+    if (groupBy === 'none') return null
+    const map = new Map<string, AdminStudent[]>()
+    for (const s of filtered) {
+      const k = groupBy === 'school' ? s.school || '(학교 미입력)' : s.grade || '(학년 미입력)'
+      if (!map.has(k)) map.set(k, [])
+      map.get(k)!.push(s)
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ko'))
+  }, [filtered, groupBy])
 
   const toggle = (id: string) =>
     setSelected((prev) => {
@@ -50,14 +80,13 @@ export function StudentAdminTable({
       else next.add(id)
       return next
     })
-
-  const allOnPageChecked =
-    filtered.length > 0 && filtered.every((s) => selected.has(s.id))
-  const toggleAll = () =>
+  const allChecked = (rows: AdminStudent[]) =>
+    rows.length > 0 && rows.every((s) => selected.has(s.id))
+  const toggleAllRows = (rows: AdminStudent[]) =>
     setSelected((prev) => {
       const next = new Set(prev)
-      if (allOnPageChecked) filtered.forEach((s) => next.delete(s.id))
-      else filtered.forEach((s) => next.add(s.id))
+      if (allChecked(rows)) rows.forEach((s) => next.delete(s.id))
+      else rows.forEach((s) => next.add(s.id))
       return next
     })
 
@@ -71,6 +100,77 @@ export function StudentAdminTable({
       setSelected(new Set())
     })
   }
+
+  // 공용 테이블 렌더(단일 / 그룹 공통)
+  const tableEl = (rows: AdminStudent[]) => (
+    <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <table className="w-full min-w-[1000px] text-left text-sm">
+        <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <tr>
+            <th className="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={allChecked(rows)}
+                onChange={() => toggleAllRows(rows)}
+              />
+            </th>
+            <th className="px-4 py-3 font-medium">이름 / 학년·성별</th>
+            <th className="px-4 py-3 font-medium">학교</th>
+            <th className="px-4 py-3 font-medium">상태</th>
+            <th className="px-4 py-3 font-medium">배정 반</th>
+            <th className="px-4 py-3 font-medium">학생 연락처</th>
+            <th className="px-4 py-3 font-medium">학부모 연락처</th>
+            <th className="px-4 py-3 text-right font-medium">관리</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/70">
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={8} className="px-4 py-12 text-center text-sm text-zinc-400">
+                조건에 맞는 학생이 없습니다.
+              </td>
+            </tr>
+          ) : (
+            rows.map((s) => (
+              <tr key={s.id} className={selected.has(s.id) ? 'bg-zinc-50 dark:bg-zinc-900/40' : ''}>
+                <td className="px-4 py-3">
+                  <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
+                </td>
+                <td className="px-4 py-3">
+                  <div className="font-medium text-zinc-900 dark:text-zinc-50">{s.name}</div>
+                  <div className="text-xs text-zinc-400">
+                    {s.grade}
+                    {s.gender ? ` · ${s.gender}` : ''}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{s.school ?? '—'}</td>
+                <td className="px-4 py-3">
+                  <StatusSelect id={s.id} value={s.status} />
+                </td>
+                <td className="px-4 py-3">
+                  <ClassSelect id={s.id} value={s.class_id} classes={classes} />
+                </td>
+                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{s.student_phone ?? '—'}</td>
+                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{s.parent_phone ?? '—'}</td>
+                <td className="px-4 py-3 text-right">
+                  <div className="inline-flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditing(s)}
+                      className="rounded-md px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      수정
+                    </button>
+                    <DeleteButton id={s.id} name={s.name} />
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
 
   return (
     <div className="mt-8">
@@ -103,7 +203,66 @@ export function StudentAdminTable({
         </button>
       </div>
 
-      {/* 일괄 반배정 바 (선택 시 노출) */}
+      {/* 검색 · 학교/학년 필터 · 구분(그룹) 보기 */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="이름·학교 검색"
+          className="h-9 w-48 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900"
+        />
+        <select
+          value={schoolFilter}
+          onChange={(e) => setSchoolFilter(e.target.value)}
+          className="h-9 rounded-lg border border-zinc-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        >
+          <option value="">전체 학교</option>
+          {schools.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <select
+          value={gradeFilter}
+          onChange={(e) => setGradeFilter(e.target.value)}
+          className="h-9 rounded-lg border border-zinc-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        >
+          <option value="">전체 학년</option>
+          {grades.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </select>
+
+        <div className="ml-auto flex items-center gap-1 text-xs">
+          <span className="text-zinc-400">구분</span>
+          {(
+            [
+              ['none', '전체'],
+              ['school', '학교별'],
+              ['grade', '학년별'],
+            ] as [GroupBy, string][]
+          ).map(([g, label]) => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGroupBy(g)}
+              className={
+                'rounded-lg border px-2.5 py-1.5 font-medium transition-colors ' +
+                (groupBy === g
+                  ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-white dark:text-zinc-900'
+                  : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800')
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 일괄 반배정 바 */}
       {selected.size > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
@@ -140,73 +299,31 @@ export function StudentAdminTable({
         </div>
       )}
 
-      {/* 관리 테이블 */}
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <table className="w-full min-w-[860px] text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/50">
-            <tr>
-              <th className="w-10 px-4 py-3">
-                <input type="checkbox" checked={allOnPageChecked} onChange={toggleAll} />
-              </th>
-              <th className="px-4 py-3 font-medium">이름 / 학년</th>
-              <th className="px-4 py-3 font-medium">상태</th>
-              <th className="px-4 py-3 font-medium">배정 반</th>
-              <th className="px-4 py-3 font-medium">학생 연락처</th>
-              <th className="px-4 py-3 font-medium">학부모 연락처</th>
-              <th className="px-4 py-3 text-right font-medium">관리</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/70">
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-sm text-zinc-400">
-                  해당 상태의 학생이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((s) => (
-                <tr key={s.id} className={selected.has(s.id) ? 'bg-zinc-50 dark:bg-zinc-900/40' : ''}>
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(s.id)}
-                      onChange={() => toggle(s.id)}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-zinc-900 dark:text-zinc-50">{s.name}</div>
-                    <div className="text-xs text-zinc-400">{s.grade}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusSelect id={s.id} value={s.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <ClassSelect id={s.id} value={s.class_id} classes={classes} />
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
-                    {s.student_phone ?? '—'}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
-                    {s.parent_phone ?? '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="inline-flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setEditing(s)}
-                        className="rounded-md px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                      >
-                        수정
-                      </button>
-                      <DeleteButton id={s.id} name={s.name} />
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* 결과: 단일 테이블 또는 학교별/학년별 구분 섹션 */}
+      {groupBy === 'none' ? (
+        <div className="mt-4">{tableEl(filtered)}</div>
+      ) : (
+        <div className="mt-4 space-y-6">
+          {groups!.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-400 dark:border-zinc-700">
+              조건에 맞는 학생이 없습니다.
+            </p>
+          ) : (
+            groups!.map(([key, rows]) => (
+              <section key={key}>
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                  <span>{groupBy === 'school' ? '🏫' : '🎓'}</span>
+                  {key}
+                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-normal text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    {rows.length}명
+                  </span>
+                </h3>
+                {tableEl(rows)}
+              </section>
+            ))
+          )}
+        </div>
+      )}
 
       {creating && (
         <StudentFormModal mode="create" classes={classes} onClose={() => setCreating(false)} />

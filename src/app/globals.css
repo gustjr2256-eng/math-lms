@@ -48,9 +48,10 @@
   --color-brand: #792316;        /* 포인트(마룬) */
   --color-brand-strong: #5e1b11; /* hover */
   --color-brand-tint: #f0e3de;   /* 연한 브랜드 배경 */
-  --color-cream: #ece5cf;        /* 앱·사이드바 배경 */
-  --color-cream-card: #f7f2e6;   /* 카드 */
-  --color-cream-line: #ddd2b8;   /* 보더 */
+  --color-cream: #ece5cf;        /* 메인 콘텐츠 배경 */
+  --color-cream-deep: #e3d9bd;   /* 사이드바(약간 진하게 → 가라앉는 느낌) */
+  --color-cream-card: #f7f2e6;   /* 카드 · 헤더(밝게 → 떠있는 느낌) */
+  --color-cream-line: #d6caac;   /* 보더(살짝 진하게 강조) */
 
   --font-sans: 'Pretendard', ui-sans-serif, system-ui, 'Apple SD Gothic Neo', sans-serif;
   --font-heading: 'Paperozi', 'Pretendard', sans-serif;

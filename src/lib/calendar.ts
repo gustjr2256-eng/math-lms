@@ -106,8 +106,38 @@ export type Segment = {
   continuesRight: boolean // 다음 주로 이어짐
 }
 
-// 기간(period) 일정들을 한 주 안에서 겹치지 않는 레인(lane)들로 배치한다.
-export function layoutPeriods(week: Cell[], periods: Schedule[]): Segment[][] {
+// 모든 기간 일정에 '고정 레인(줄)'을 1회 배정한다.
+//  - 길이가 아니라 시작일(그다음 등록순)로 정렬 → 긴 일정이 위로 올라가지 않는다.
+//  - 전역으로 고정하므로 같은 일정은 주가 바뀌어도 항상 같은 줄(=같은 위치/색) 유지.
+export function assignGlobalLanes(periods: Schedule[]): Map<string, number> {
+  const sorted = [...periods].sort(
+    (a, b) =>
+      a.start_date.localeCompare(b.start_date) ||
+      a.created_at.localeCompare(b.created_at) ||
+      a.id.localeCompare(b.id)
+  )
+  const laneEnds: string[] = [] // 각 레인이 마지막으로 점유한 종료일
+  const map = new Map<string, number>()
+  for (const p of sorted) {
+    // 종료일이 이 일정의 시작일보다 이른(겹치지 않는) 첫 레인 재사용, 없으면 새 레인
+    let lane = laneEnds.findIndex((end) => end < p.start_date)
+    if (lane === -1) {
+      lane = laneEnds.length
+      laneEnds.push(p.end_date)
+    } else {
+      laneEnds[lane] = p.end_date
+    }
+    map.set(p.id, lane)
+  }
+  return map
+}
+
+// 기간(period) 일정들을 한 주 안에서, 전역 고정 레인에 맞춰 배치한다.
+export function layoutPeriods(
+  week: Cell[],
+  periods: Schedule[],
+  globalLane: Map<string, number>
+): Segment[][] {
   const weekStart = week[0].ymd
   const weekEnd = week[6].ymd
 
@@ -137,23 +167,9 @@ export function layoutPeriods(week: Cell[], periods: Schedule[]): Segment[][] {
     })
   }
 
-  // 긴 막대를 위 레인으로: 시작칸 → 길이 내림차순
-  segs.sort(
-    (a, b) => a.startCol - b.startCol || b.endCol - b.startCol - (a.endCol - a.startCol)
-  )
-
-  const lanes: Segment[][] = []
-  for (const s of segs) {
-    let placed = false
-    for (const lane of lanes) {
-      if (lane[lane.length - 1].endCol < s.startCol) {
-        lane.push(s)
-        placed = true
-        break
-      }
-    }
-    if (!placed) lanes.push([s])
-  }
+  const maxLane = segs.reduce((m, s) => Math.max(m, globalLane.get(s.schedule.id) ?? 0), -1)
+  const lanes: Segment[][] = Array.from({ length: maxLane + 1 }, () => [])
+  for (const s of segs) lanes[globalLane.get(s.schedule.id) ?? 0].push(s)
   return lanes
 }
 

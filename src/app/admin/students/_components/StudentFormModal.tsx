@@ -4,6 +4,7 @@ import { useActionState, useEffect } from 'react'
 import {
   STUDENT_STATUSES,
   STATUS_LABEL,
+  STUDENT_GENDERS,
   type AdminStudent,
 } from '@/lib/students'
 import {
@@ -83,7 +84,31 @@ export function StudentFormModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <label className={labelCls}>학교</label>
+              <input
+                name="school"
+                defaultValue={student?.school ?? ''}
+                placeholder="예: OO중학교"
+                className={`mt-1 ${inputCls}`}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>성별</label>
+              <select name="gender" defaultValue={student?.gender ?? ''} className={`mt-1 ${inputCls}`}>
+                <option value="">선택 안 함</option>
+                {STUDENT_GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <label className={labelCls}>상태</label>
+              {/* 등록 기본값: 신규(NEW) */}
               <select name="status" defaultValue={student?.status ?? 'NEW'} className={`mt-1 ${inputCls}`}>
                 {STUDENT_STATUSES.map((s) => (
                   <option key={s} value={s}>

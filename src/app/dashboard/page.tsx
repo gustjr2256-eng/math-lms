@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { AppShell } from '@/components/layout/AppShell'
+import { AnnouncementAutoOpen } from '@/components/announcements/AnnouncementAutoOpen'
 
 // 로그인 후 랜딩. proxy가 approved 유저만 통과시킨다.
 export default async function DashboardPage() {
@@ -56,6 +57,8 @@ export default async function DashboardPage() {
 
   return (
     <AppShell name={profile?.name} isAdmin={isAdmin}>
+      {/* 메인에서만 공지 팝업 자동 호출 */}
+      <AnnouncementAutoOpen />
       <h1 className="text-2xl font-bold text-brand dark:text-zinc-50">
         {profile?.name ?? '사용자'} 님, 환영합니다 👋
       </h1>

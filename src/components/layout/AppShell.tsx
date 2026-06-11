@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { AnnouncementProvider } from '@/components/announcements/AnnouncementProvider'
+import { AnnouncementPopup } from '@/components/announcements/AnnouncementPopup'
 
 // 전 페이지 공통 레이아웃 래퍼(MainLayout).
 //  - 데스크탑(md+): 좌측 고정 사이드바(280px) + 상단 헤더 + 메인
@@ -20,6 +22,7 @@ export function AppShell({
   const [open, setOpen] = useState(false)
 
   return (
+    <AnnouncementProvider>
     <div className="min-h-screen bg-cream dark:bg-black">
       {/* 데스크탑 고정 사이드바 (280px) */}
       <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-cream-line dark:border-zinc-800 md:block">
@@ -66,6 +69,10 @@ export function AppShell({
           <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-10">{children}</div>
         </main>
       </div>
+
+      {/* 메인 진입 공지 팝업 */}
+      <AnnouncementPopup />
     </div>
+    </AnnouncementProvider>
   )
 }

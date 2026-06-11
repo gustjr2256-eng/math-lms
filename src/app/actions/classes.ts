@@ -41,6 +41,7 @@ export async function createClass(
   if (error) return { error: error.message }
 
   revalidatePath('/classes')
+  revalidatePath('/admin/students') // 반 생성 폼이 이 페이지로 이동 + 반 배정 드롭다운 갱신
   return { ok: true }
 }
 
@@ -75,6 +76,7 @@ export async function updateClass(
 
   revalidatePath('/classes')
   revalidatePath(`/classes/${id}`)
+  revalidatePath('/admin/students')
   return { ok: true }
 }
 
@@ -88,4 +90,5 @@ export async function deleteClass(formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/classes')
+  revalidatePath('/admin/students')
 }

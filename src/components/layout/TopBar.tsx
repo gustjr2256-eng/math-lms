@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { currentLabel } from './nav'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
+import { useAnnouncement } from '@/components/announcements/AnnouncementProvider'
 
 // 상단바: (모바일)햄버거 + 페이지 제목 · 검색창 · 알림 · 다크모드 토글 · 유저 프로필.
 // 검색/알림은 골격(UI) 단계로 동작 로직은 비워둔다.
@@ -18,9 +19,10 @@ export function TopBar({
   const pathname = usePathname()
   const title = currentLabel(pathname)
   const initial = (name ?? '사').trim().charAt(0)
+  const { hasAnnouncement, openForce } = useAnnouncement()
 
   return (
-    <header className="sticky top-0 z-30 border-b border-cream-line bg-cream/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
+    <header className="sticky top-0 z-30 border-b border-cream-line bg-cream-card/90 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/85">
       <div className="flex h-20 items-center gap-3 px-4 md:px-8">
         {/* 모바일 햄버거 */}
         <button
@@ -55,11 +57,14 @@ export function TopBar({
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            aria-label="알림"
+            onClick={openForce}
+            aria-label={hasAnnouncement ? '공지 다시 보기' : '알림'}
             className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-cream-line text-brand transition-colors hover:bg-brand-tint dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             <BellIcon />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-brand dark:bg-red-500" />
+            {hasAnnouncement && (
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-cream dark:ring-zinc-950" />
+            )}
           </button>
 
           <ThemeToggle className="flex h-9 w-9 items-center justify-center rounded-lg border border-cream-line text-brand transition-colors hover:bg-brand-tint dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" />

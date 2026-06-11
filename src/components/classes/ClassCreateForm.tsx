@@ -6,7 +6,7 @@ import { createClass, type ClassFormState } from '@/app/actions/classes'
 type TeacherOption = { id: string; name: string }
 
 const inputCls =
-  'h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100'
+  'h-10 rounded-lg border border-cream-line bg-white px-3 font-pretendard text-sm outline-none focus:border-brand/40 dark:border-zinc-700 dark:bg-zinc-900'
 
 // 원장 전용 반 생성 폼 (담당 강사 지정 포함).
 export function ClassCreateForm({ teachers }: { teachers: TeacherOption[] }) {
@@ -21,8 +21,8 @@ export function ClassCreateForm({ teachers }: { teachers: TeacherOption[] }) {
   }, [state])
 
   return (
-    <details className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
-      <summary className="cursor-pointer text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+    <details className="rounded-2xl border border-cream-line bg-cream-card p-5 dark:border-zinc-800 dark:bg-zinc-950">
+      <summary className="cursor-pointer font-pretendard text-sm font-semibold text-brand dark:text-zinc-50">
         + 새 반 만들기
       </summary>
 
@@ -57,7 +57,7 @@ export function ClassCreateForm({ teachers }: { teachers: TeacherOption[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="sm:col-span-2 h-10 rounded-lg bg-zinc-900 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="sm:col-span-2 h-10 rounded-lg bg-brand font-pretendard text-sm font-semibold text-white transition-colors hover:bg-brand-strong disabled:opacity-60"
         >
           {pending ? '생성 중…' : '반 생성'}
         </button>

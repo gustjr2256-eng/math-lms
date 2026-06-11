@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { requireApproved } from '@/lib/auth'
 import { AppShell } from '@/components/layout/AppShell'
-import { ClassCreateForm } from '@/components/classes/ClassCreateForm'
 
 type ClassRow = {
   id: string
@@ -26,23 +25,11 @@ export default async function ClassesPage() {
   const { data: classData } = await supabase
     .from('classes')
     .select(
-      'id, name, subject, day_of_week, time, teacher_id, teacher:users!classes_teacher_id_fkey(name), students(count)'
+      'id, name, subject, day_of_week, time, teacher_id, teacher:users!classes_teacher_id_fkey(name), students!students_class_id_fkey(count)'
     )
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
 
   const classes = (classData ?? []) as unknown as ClassRow[]
-
-  // 원장만: 반 생성 드롭다운용 승인 강사 목록
-  let teachers: { id: string; name: string }[] = []
-  if (isAdmin) {
-    const { data } = await supabase
-      .from('users')
-      .select('id, name')
-      .eq('role', 'teacher')
-      .eq('status', 'approved')
-      .order('name')
-    teachers = data ?? []
-  }
 
   return (
     <AppShell name={profile?.name} isAdmin={isAdmin}>
@@ -51,15 +38,9 @@ export default async function ClassesPage() {
       </h1>
       <p className="mt-2 text-sm text-brand/70 dark:text-zinc-400">
         {isAdmin
-          ? '반을 생성하고 담당 강사를 지정하세요. 각 반을 눌러 학생 명단을 관리합니다.'
+          ? '각 반을 눌러 학생 명단·수업을 관리합니다. 반 생성·담당 강사 지정은 [원장 통합 관리 → 학생 통합 관리]에서 합니다.'
           : '담당하는 반의 학생 명단을 관리할 수 있습니다.'}
       </p>
-
-      {isAdmin && (
-        <div className="mt-6">
-          <ClassCreateForm teachers={teachers} />
-        </div>
-      )}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {classes.length === 0 ? (

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import {
   WEEKDAYS,
+  assignGlobalLanes,
   colorOf,
   layoutPeriods,
   monthMatrix,
@@ -16,6 +17,7 @@ import { ScheduleModal } from './ScheduleModal'
 const HEADER = 26 // 날짜 숫자 영역 높이
 const BAR_H = 22 // 기간 막대 한 레인 높이(여백 포함)
 const BADGE_H = 22 // 특정일 배지 한 줄 높이
+const LANE_STEP = 20 // 막대 한 줄의 실제 점유 높이(h-[18px] + gap-[2px]) — 칩 겹침 정렬용
 const PAD = 8
 const MIN_WEEK = 104
 
@@ -43,6 +45,8 @@ export function CalendarBoard({
 
   const periods = useMemo(() => schedules.filter((s) => s.type === 'period'), [schedules])
   const singles = useMemo(() => schedules.filter((s) => s.type === 'single'), [schedules])
+  // 기간 일정의 줄(레인)을 전역 고정 → 같은 일정이 주마다 같은 줄/색 유지
+  const globalLane = useMemo(() => assignGlobalLanes(periods), [periods])
 
   const move = (delta: number) => {
     const d = new Date(year, month + delta, 1)
@@ -72,13 +76,25 @@ export function CalendarBoard({
             오늘
           </button>
         </div>
-        <div className="flex items-center gap-1">
-          <NavBtn onClick={() => move(-1)} label="이전 달">
-            ‹
-          </NavBtn>
-          <NavBtn onClick={() => move(1)} label="다음 달">
-            ›
-          </NavBtn>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const prefix = `${year}-${String(month + 1).padStart(2, '0')}`
+              setModal({ mode: 'create', date: today.startsWith(prefix) ? today : `${prefix}-01` })
+            }}
+            className="inline-flex h-9 items-center rounded-lg bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-strong"
+          >
+            + 일정 추가
+          </button>
+          <div className="flex items-center gap-1">
+            <NavBtn onClick={() => move(-1)} label="이전 달">
+              ‹
+            </NavBtn>
+            <NavBtn onClick={() => move(1)} label="다음 달">
+              ›
+            </NavBtn>
+          </div>
         </div>
       </div>
 
@@ -104,13 +120,32 @@ export function CalendarBoard({
 
         {/* 주 단위 렌더 */}
         {weeks.map((week, wi) => {
-          const lanes = layoutPeriods(week, periods)
+          const lanes = layoutPeriods(week, periods, globalLane)
           const byCol = singlesByCol(week, singles)
           const singleRows = byCol.reduce((mx, c) => Math.max(mx, c.length), 0)
+          // 특정일은 막대 위에 겹쳐 그리므로, 막대 줄 수와 특정일 스택 중 큰 쪽 기준
           const weekHeight = Math.max(
             MIN_WEEK,
-            HEADER + lanes.length * BAR_H + singleRows * BADGE_H + PAD
+            HEADER + Math.max(lanes.length * BAR_H, singleRows * BADGE_H, BAR_H) + PAD
           )
+          // 특정 칸(요일)을 덮는 기간 막대의 레인 인덱스(없으면 -1).
+          // 특정일은 같은 색을 상속한 '부모 기간제' 막대 위에 올라가야 하므로 같은 색을 우선 매칭한다.
+          const laneCoveringCol = (ci: number, color: string) => {
+            for (let li = 0; li < lanes.length; li++) {
+              if (
+                lanes[li].some(
+                  (seg) =>
+                    seg.startCol <= ci && ci <= seg.endCol && seg.schedule.color === color
+                )
+              )
+                return li
+            }
+            // 같은 색 막대가 없으면 아무 막대라도 덮는 줄
+            for (let li = 0; li < lanes.length; li++) {
+              if (lanes[li].some((seg) => seg.startCol <= ci && ci <= seg.endCol)) return li
+            }
+            return -1
+          }
 
           return (
             <div
@@ -157,52 +192,50 @@ export function CalendarBoard({
                 ))}
               </div>
 
-              {/* 오버레이: 기간 막대 + 특정일 배지 (날짜 칸과 동일한 grid-cols-7 공유) */}
-              <div
-                className="pointer-events-none absolute inset-x-0 flex flex-col gap-[2px]"
-                style={{ top: HEADER }}
-              >
-                {/* 기간 막대 레인 */}
-                {lanes.map((lane, li) => (
-                  <div key={`lane-${li}`} className="grid grid-cols-7">
-                    {lane.map((seg) => {
-                      const col = colorOf(seg.schedule.color)
-                      return (
-                        <button
-                          key={seg.schedule.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setModal({ mode: 'edit', schedule: seg.schedule })
-                          }}
-                          style={{ gridColumn: `${seg.startCol + 1} / ${seg.endCol + 2}` }}
-                          title={seg.schedule.title}
-                          className={
-                            'pointer-events-auto mx-0.5 flex h-[18px] items-center gap-1 border-l-2 px-1.5 text-[11px] font-medium leading-none ' +
-                            col.bar +
-                            ' ' +
-                            (seg.continuesLeft ? 'rounded-r-md border-l-0' : 'rounded-md') +
-                            (seg.continuesRight ? ' rounded-r-none' : '')
-                          }
-                        >
-                          {seg.continuesLeft && <span className="opacity-60">◀</span>}
-                          <span className="truncate">{seg.schedule.title}</span>
-                          {seg.continuesRight && (
-                            <span className="ml-auto opacity-60">▶</span>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                ))}
+              {/* 오버레이: 기간 막대(배경) + 특정일 칩(막대 위 같은 칸·같은 줄에 겹침) */}
+              <div className="pointer-events-none absolute inset-x-0" style={{ top: HEADER }}>
+                {/* 기간 막대 레인 (배경) */}
+                <div className="flex flex-col gap-[2px]">
+                  {lanes.map((lane, li) => (
+                    <div key={`lane-${li}`} className="grid grid-cols-7">
+                      {lane.map((seg) => {
+                        const col = colorOf(seg.schedule.color)
+                        return (
+                          <button
+                            key={seg.schedule.id}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setModal({ mode: 'edit', schedule: seg.schedule })
+                            }}
+                            style={{ gridColumn: `${seg.startCol + 1} / ${seg.endCol + 2}` }}
+                            title={seg.schedule.title}
+                            className={
+                              'pointer-events-auto mx-0.5 flex h-[18px] items-center gap-1 border-l-2 px-1.5 text-[11px] font-medium leading-none ' +
+                              col.bar +
+                              ' ' +
+                              (seg.continuesLeft ? 'rounded-r-md border-l-0' : 'rounded-md') +
+                              (seg.continuesRight ? ' rounded-r-none' : '')
+                            }
+                          >
+                            {seg.continuesLeft && <span className="opacity-60">◀</span>}
+                            <span className="truncate">{seg.schedule.title}</span>
+                            {seg.continuesRight && <span className="ml-auto opacity-60">▶</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ))}
+                </div>
 
-                {/* 특정일 배지 (막대 위에 같은 칸으로 겹쳐 정렬) */}
-                {Array.from({ length: singleRows }).map((_, r) => (
-                  <div key={`srow-${r}`} className="grid grid-cols-7">
-                    {byCol.map((colEvents, ci) => {
-                      const ev = colEvents[r]
-                      if (!ev) return <span key={ci} />
+                {/* 특정일 칩 (전경) — 그 날짜를 덮는 막대의 줄 위에 정확히 겹쳐 배치 */}
+                <div className="absolute inset-0">
+                  {byCol.map((colEvents, ci) =>
+                    colEvents.map((ev, r) => {
                       const col = colorOf(ev.color)
+                      // 같은 색(부모 기간제) 막대 줄 위에 겹침. 막대 없으면 첫 줄.
+                      const lane = laneCoveringCol(ci, ev.color)
+                      const baseLane = lane >= 0 ? lane : r
                       return (
                         <button
                           key={ev.id}
@@ -211,20 +244,25 @@ export function CalendarBoard({
                             e.stopPropagation()
                             setModal({ mode: 'edit', schedule: ev })
                           }}
-                          style={{ gridColumn: `${ci + 1} / ${ci + 2}` }}
                           title={ev.title}
+                          style={{
+                            position: 'absolute',
+                            left: `calc(${ci} * (100% / 7) + 3px)`,
+                            width: `calc(100% / 7 - 6px)`,
+                            top: baseLane * LANE_STEP,
+                          }}
                           className={
-                            'pointer-events-auto mx-0.5 flex h-[18px] items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold leading-none text-white ' +
+                            'pointer-events-auto flex h-[18px] items-center gap-1 rounded-full px-1.5 text-[11px] font-semibold leading-none text-white shadow-sm ring-1 ring-white/50 dark:ring-black/30 ' +
                             col.badge
                           }
                         >
-                          <span>✓</span>
+                          <span className="text-[9px]">●</span>
                           <span className="truncate">{ev.title}</span>
                         </button>
                       )
-                    })}
-                  </div>
-                ))}
+                    })
+                  )}
+                </div>
               </div>
             </div>
           )
@@ -240,6 +278,17 @@ export function CalendarBoard({
           mode="edit"
           schedule={modal.schedule}
           canManage={canManage(modal.schedule)}
+          childEvents={
+            modal.schedule.type === 'period'
+              ? singles
+                  .filter(
+                    (s) =>
+                      s.start_date >= modal.schedule.start_date &&
+                      s.start_date <= modal.schedule.end_date
+                  )
+                  .sort((a, b) => a.start_date.localeCompare(b.start_date))
+              : []
+          }
           onClose={() => setModal(null)}
         />
       )}

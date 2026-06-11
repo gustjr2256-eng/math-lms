@@ -23,7 +23,7 @@ export function Sidebar({
   const [open, setOpen] = useState(adminActive)
 
   return (
-    <div className="flex h-full w-[280px] flex-col bg-cream dark:bg-zinc-950">
+    <div className="flex h-full w-[280px] flex-col bg-cream-deep dark:bg-zinc-950">
       {/* 로고 — 클릭 시 메인('/')으로 이동 */}
       <Link href="/" onClick={onNavigate} className="block px-5 py-5">
         <motion.div

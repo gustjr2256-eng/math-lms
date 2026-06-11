@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth'
 import { AppShell } from '@/components/layout/AppShell'
+import { AdminGuard } from '@/components/auth/AdminGuard'
 import { TeacherRowActions } from './_components/TeacherRowActions'
 
 type Status = 'pending' | 'approved' | 'suspended'
@@ -34,6 +35,7 @@ export default async function TeachersAdminPage() {
 
   return (
     <AppShell name={profile?.name} isAdmin>
+      <AdminGuard isAdmin={profile?.role === 'admin'}>
       <h1 className="text-2xl font-bold text-brand dark:text-zinc-50">강사 가입 승인 · 관리</h1>
       <p className="mt-2 text-sm text-brand/70 dark:text-zinc-400">
         대기 중인 강사를 승인하거나, 퇴사한 강사를 정지·삭제할 수 있습니다.
@@ -84,6 +86,7 @@ export default async function TeachersAdminPage() {
           )
         })}
       </div>
+      </AdminGuard>
     </AppShell>
   )
 }

@@ -16,10 +16,15 @@ export const STATUS_BADGE: Record<StudentStatus, string> = {
   DROPPED: 'bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
 }
 
+export const STUDENT_GENDERS = ['남', '여'] as const
+export type StudentGender = (typeof STUDENT_GENDERS)[number]
+
 export type AdminStudent = {
   id: string
   name: string
   grade: string
+  school: string | null
+  gender: StudentGender | null
   status: StudentStatus
   class_id: string | null
   student_phone: string | null

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/auth'
-import { STUDENT_STATUSES } from '@/lib/students'
+import { STUDENT_STATUSES, STUDENT_GENDERS } from '@/lib/students'
 
 // ============================================================
 // 학생 쓰기 작업은 전부 '원장(admin)' 전용이다.
@@ -19,9 +19,20 @@ const classIdField = z
   .transform((v) => (v && v.length > 0 ? v : null))
   .refine((v) => v === null || /^[0-9a-f-]{36}$/i.test(v), { message: '반이 올바르지 않습니다.' })
 
+// 성별: '' (선택안함) 또는 '남'/'여'
+const genderField = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.length > 0 ? v : null))
+  .refine((v) => v === null || (STUDENT_GENDERS as readonly string[]).includes(v), {
+    message: '성별이 올바르지 않습니다.',
+  })
+
 const studentSchema = z.object({
   name: z.string().trim().min(1, { message: '학생 이름을 입력하세요.' }),
   grade: z.string().trim().min(1, { message: '학년을 입력하세요.' }),
+  school: z.string().trim().optional(),
+  gender: genderField,
   status: z.enum(STUDENT_STATUSES),
   class_id: classIdField,
   student_phone: z.string().trim().optional(),
@@ -33,6 +44,8 @@ function parse(formData: FormData) {
   return studentSchema.safeParse({
     name: formData.get('name'),
     grade: formData.get('grade'),
+    school: formData.get('school') ?? undefined,
+    gender: formData.get('gender') ?? undefined,
     status: formData.get('status'),
     class_id: formData.get('class_id') ?? undefined,
     student_phone: formData.get('student_phone') ?? undefined,
@@ -61,6 +74,8 @@ export async function addStudent(
   const { error } = await supabase.from('students').insert({
     name: parsed.data.name,
     grade: parsed.data.grade,
+    school: parsed.data.school || null,
+    gender: parsed.data.gender,
     status: parsed.data.status,
     class_id: parsed.data.class_id,
     student_phone: parsed.data.student_phone || null,
@@ -98,6 +113,8 @@ export async function updateStudent(
     .update({
       name: parsed.data.name,
       grade: parsed.data.grade,
+      school: parsed.data.school || null,
+      gender: parsed.data.gender,
       status: parsed.data.status,
       class_id: parsed.data.class_id,
       student_phone: parsed.data.student_phone || null,

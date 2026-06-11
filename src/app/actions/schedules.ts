@@ -67,6 +67,18 @@ export async function createSchedule(
   })
   if (error) return { error: '일정 등록에 실패했습니다.' }
 
+  // 기간제일 때, 함께 입력한 '기간 내 특정일'들을 single 일정으로 일괄 생성
+  if (parsed.data.type === 'period') {
+    await insertChildEvents(
+      supabase,
+      formData,
+      parsed.data.start_date,
+      parsed.data.end_date,
+      parsed.data.color,
+      userId
+    )
+  }
+
   revalidatePath('/calendar')
   return { ok: true }
 }
@@ -76,8 +88,11 @@ export async function updateSchedule(
   formData: FormData
 ): Promise<ScheduleFormState> {
   let supabase
+  let userId
   try {
-    ;({ supabase } = await requireApproved())
+    const ctx = await requireApproved()
+    supabase = ctx.supabase
+    userId = ctx.user.id
   } catch (e) {
     return { error: (e as Error).message }
   }
@@ -104,8 +119,65 @@ export async function updateSchedule(
     .eq('id', id)
   if (error) return { error: '수정 권한이 없거나 입력이 올바르지 않습니다.' }
 
+  // 수정 시에도 기간제면 '기간 내 특정일'을 추가로 생성할 수 있다.
+  if (parsed.data.type === 'period') {
+    await insertChildEvents(
+      supabase,
+      formData,
+      parsed.data.start_date,
+      parsed.data.end_date,
+      parsed.data.color,
+      userId
+    )
+  }
+
   revalidatePath('/calendar')
   return { ok: true }
+}
+
+// 기간제 일정에 함께 입력한 '기간 내 특정일'들을 single 일정으로 일괄 생성한다.
+// (같은 색상을 상속해 캘린더에서 기간 막대 위에 겹쳐 표시됨)
+async function insertChildEvents(
+  supabase: Awaited<ReturnType<typeof requireApproved>>['supabase'],
+  formData: FormData,
+  startDate: string,
+  endDate: string,
+  color: string,
+  userId: string
+) {
+  const raw = formData.get('events')
+  if (typeof raw !== 'string' || !raw.trim()) return
+
+  let events: { date?: string; title?: string }[] = []
+  try {
+    events = JSON.parse(raw)
+  } catch {
+    events = []
+  }
+
+  const rows = (Array.isArray(events) ? events : [])
+    .filter(
+      (e) =>
+        typeof e?.date === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(e.date) &&
+        e.date >= startDate &&
+        e.date <= endDate &&
+        typeof e?.title === 'string' &&
+        e.title.trim().length > 0
+    )
+    .map((e) => ({
+      title: e.title!.trim(),
+      type: 'single' as const,
+      start_date: e.date!,
+      end_date: e.date!,
+      color,
+      memo: null,
+      created_by: userId,
+    }))
+
+  if (rows.length > 0) {
+    await supabase.from('academy_schedules').insert(rows)
+  }
 }
 
 export async function deleteSchedule(formData: FormData) {

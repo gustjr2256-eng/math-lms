@@ -9,6 +9,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: '/classes', label: '반 관리', icon: '📚' },
   { href: '/materials', label: '자료실', icon: '📎' },
   { href: '/calendar', label: '캘린더', icon: '🗓️' },
+  { href: '/timetable', label: '시간표', icon: '⏰' },
 ]
 
 // 원장 전용 그룹(아코디언)
@@ -18,6 +19,7 @@ export const ADMIN_GROUP: NavGroup = {
   children: [
     { href: '/admin/students', label: '학생 통합 관리', icon: '🎓' },
     { href: '/admin/teachers', label: '강사 관리', icon: '🧑‍🏫' },
+    { href: '/admin/announcements', label: '공지 관리', icon: '📢' },
   ],
 }
 
