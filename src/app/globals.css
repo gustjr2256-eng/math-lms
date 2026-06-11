@@ -35,12 +35,35 @@
   /* 라이트 = 크림 배경 + 진한 브라운 텍스트 */
   --background: #ece5cf;
   --foreground: #3b2a23;
+
+  /* 데이터 강조 포인트(테마별 전환) — 게이지 아크·수치 강조 */
+  --accent: #792316;       /* 라이트: 마룬 */
+  --donut-track: #ddd2b8;  /* 게이지 트랙(미충전) */
 }
 
-/* 다크 = 기존 zinc 다크 톤 (클래스 토글) */
+/* 다크 = 딥 네이비 + 골드 포인트 (클래스 토글)
+ *   Tailwind v4는 dark:bg-zinc-900 등을 var(--color-zinc-900)로 컴파일하므로,
+ *   .dark 안에서 zinc 스케일을 네이비로 재정의하면 기존 dark:zinc-* 유틸이
+ *   전부 자동으로 네이비 톤으로 전환된다(64개 파일 무수정). */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0a192f; /* 딥 네이비 배경 */
+  --foreground: #e6f1ff; /* 연파랑 텍스트 */
+
+  --accent: #ffd700;       /* 다크: 골드 */
+  --donut-track: #233554;  /* 네이비 트랙 */
+
+  /* zinc 스케일 → 네이비 톤 remap (의미별 매핑) */
+  --color-zinc-50: #e6f1ff;  /* 주요 텍스트 */
+  --color-zinc-100: #dbe7ff;
+  --color-zinc-200: #c4d2ec;
+  --color-zinc-300: #a8b8d8; /* 보조 텍스트 */
+  --color-zinc-400: #8195b8; /* muted 텍스트 */
+  --color-zinc-500: #5e739c; /* faint 아이콘/플레이스홀더 */
+  --color-zinc-600: #4a5f86;
+  --color-zinc-700: #33476b; /* 입력 보더 */
+  --color-zinc-800: #233554; /* 보더 · hover 면 */
+  --color-zinc-900: #0e1e3a; /* 입력 · 보조면 */
+  --color-zinc-950: #112240; /* 카드/패널 Surface */
 }
 
 /* 브랜드 팔레트 + 폰트 토큰 (정적) */
@@ -48,6 +71,8 @@
   --color-brand: #792316;        /* 포인트(마룬) */
   --color-brand-strong: #5e1b11; /* hover */
   --color-brand-tint: #f0e3de;   /* 연한 브랜드 배경 */
+  --color-gold: #ffd700;         /* 다크모드 CTA 포인트(행동 유도 전용) */
+  --color-gold-strong: #e6c200;  /* 골드 hover */
   --color-cream: #ece5cf;        /* 메인 콘텐츠 배경 */
   --color-cream-deep: #e3d9bd;   /* 사이드바(약간 진하게 → 가라앉는 느낌) */
   --color-cream-card: #f7f2e6;   /* 카드 · 헤더(밝게 → 떠있는 느낌) */

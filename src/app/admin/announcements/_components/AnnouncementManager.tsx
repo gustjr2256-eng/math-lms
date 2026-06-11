@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import {
   createAnnouncement,
   setAnnouncementActive,
@@ -8,12 +8,23 @@ import {
   type AnnouncementFormState,
 } from '@/app/actions/announcements'
 import type { Announcement } from '@/lib/announcements'
+import { AnimationButton } from '@/components/ui/AnimationButton'
+import { RichTextEditor } from '@/components/ui/RichTextEditor'
+
+export type ClassOption = { id: string; name: string }
 
 const inputCls =
   'h-10 w-full rounded-lg border border-cream-line bg-white px-3 font-pretendard text-sm outline-none focus:border-brand/40 dark:border-zinc-700 dark:bg-zinc-900'
 
-export function AnnouncementManager({ announcements }: { announcements: Announcement[] }) {
+export function AnnouncementManager({
+  announcements,
+  classes,
+}: {
+  announcements: Announcement[]
+  classes: ClassOption[]
+}) {
   const [showForm, setShowForm] = useState(false)
+  const classNameById = useMemo(() => new Map(classes.map((c) => [c.id, c.name])), [classes])
 
   return (
     <div className="mt-8">
@@ -21,13 +32,9 @@ export function AnnouncementManager({ announcements }: { announcements: Announce
         <h2 className="font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
           등록된 공지 <span className="font-pretendard text-sm text-brand/50">{announcements.length}건</span>
         </h2>
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="inline-flex h-9 items-center rounded-lg bg-brand px-4 font-pretendard text-sm font-semibold text-white hover:bg-brand-strong"
-        >
-          + 공지 팝업 추가
-        </button>
+        <AnimationButton size="sm" icon="＋" onClick={() => setShowForm(true)}>
+          공지 팝업 추가
+        </AnimationButton>
       </div>
 
       <div className="mt-4 space-y-3">
@@ -36,16 +43,22 @@ export function AnnouncementManager({ announcements }: { announcements: Announce
             아직 등록된 공지가 없습니다.
           </p>
         ) : (
-          announcements.map((a) => <Row key={a.id} a={a} />)
+          announcements.map((a) => (
+            <Row
+              key={a.id}
+              a={a}
+              className={a.target === 'class' ? classNameById.get(a.class_id ?? '') ?? '특정 반' : null}
+            />
+          ))
         )}
       </div>
 
-      {showForm && <CreateModal onClose={() => setShowForm(false)} />}
+      {showForm && <CreateModal classes={classes} onClose={() => setShowForm(false)} />}
     </div>
   )
 }
 
-function Row({ a }: { a: Announcement }) {
+function Row({ a, className }: { a: Announcement; className: string | null }) {
   const [pending, startTransition] = useTransition()
 
   const toggle = () => {
@@ -78,6 +91,16 @@ function Row({ a }: { a: Announcement }) {
             }
           >
             {a.active ? '노출중' : '숨김'}
+          </span>
+          <span
+            className={
+              'rounded-full px-2 py-0.5 font-pretendard text-[11px] font-medium ' +
+              (className
+                ? 'bg-brand-tint text-brand dark:bg-zinc-800 dark:text-zinc-300'
+                : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800/60 dark:text-zinc-400')
+            }
+          >
+            {className ? `반: ${className}` : '통합'}
           </span>
           <h3 className="truncate font-paperozi font-semibold text-brand dark:text-zinc-50">
             {a.title}
@@ -114,12 +137,13 @@ function Row({ a }: { a: Announcement }) {
   )
 }
 
-function CreateModal({ onClose }: { onClose: () => void }) {
+function CreateModal({ classes, onClose }: { classes: ClassOption[]; onClose: () => void }) {
   const [state, formAction, pending] = useActionState<AnnouncementFormState, FormData>(
     createAnnouncement,
     undefined
   )
   const formRef = useRef<HTMLFormElement>(null)
+  const [target, setTarget] = useState<'all' | 'class'>('all')
 
   useEffect(() => {
     if (state?.ok) onClose()
@@ -141,19 +165,57 @@ function CreateModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <form ref={formRef} action={formAction} className="mt-5 space-y-4">
+          {/* 대상: 통합 / 특정 반 */}
+          <div>
+            <label className="font-pretendard text-xs font-medium text-brand/60 dark:text-zinc-400">대상</label>
+            <div className="mt-1 flex items-center gap-3">
+              <div className="inline-flex rounded-lg border border-cream-line p-0.5 dark:border-zinc-700">
+                {(['all', 'class'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTarget(t)}
+                    className={
+                      'rounded-md px-3 py-1.5 font-pretendard text-sm transition-colors ' +
+                      (target === t
+                        ? 'bg-brand text-white dark:bg-gold dark:text-[#0a192f]'
+                        : 'text-brand/70 hover:bg-brand-tint dark:text-zinc-300 dark:hover:bg-zinc-800')
+                    }
+                  >
+                    {t === 'all' ? '통합 공지' : '특정 반'}
+                  </button>
+                ))}
+              </div>
+              {target === 'class' && (
+                <select
+                  name="class_id"
+                  defaultValue=""
+                  className={`${inputCls} max-w-[12rem]`}
+                  required
+                >
+                  <option value="" disabled>
+                    대상 반 선택
+                  </option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <input type="hidden" name="target" value={target} />
+          </div>
+
           <div>
             <label className="font-pretendard text-xs font-medium text-brand/60 dark:text-zinc-400">제목</label>
             <input name="title" placeholder="예: 7월 휴원 안내" className={`mt-1 ${inputCls}`} required />
           </div>
           <div>
             <label className="font-pretendard text-xs font-medium text-brand/60 dark:text-zinc-400">본문</label>
-            <textarea
-              name="body"
-              rows={4}
-              placeholder="공지 내용을 입력하세요."
-              className="mt-1 w-full rounded-lg border border-cream-line bg-white p-3 font-pretendard text-sm outline-none focus:border-brand/40 dark:border-zinc-700 dark:bg-zinc-900"
-              required
-            />
+            <div className="mt-1">
+              <RichTextEditor name="body_html" />
+            </div>
           </div>
           <div>
             <label className="font-pretendard text-xs font-medium text-brand/60 dark:text-zinc-400">
@@ -163,7 +225,7 @@ function CreateModal({ onClose }: { onClose: () => void }) {
               name="image"
               type="file"
               accept="image/*"
-              className="mt-1 w-full rounded-lg border border-cream-line bg-white px-3 py-2 font-pretendard text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white dark:border-zinc-700 dark:bg-zinc-900"
+              className="mt-1 w-full rounded-lg border border-cream-line bg-white px-3 py-2 font-pretendard text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white dark:border-zinc-700 dark:bg-zinc-900 dark:file:bg-gold dark:file:text-[#0a192f]"
             />
           </div>
 
@@ -181,13 +243,9 @@ function CreateModal({ onClose }: { onClose: () => void }) {
             >
               취소
             </button>
-            <button
-              type="submit"
-              disabled={pending}
-              className="h-10 rounded-lg bg-brand px-5 font-pretendard text-sm font-semibold text-white hover:bg-brand-strong disabled:opacity-60"
-            >
+            <AnimationButton type="submit" disabled={pending}>
               {pending ? '등록 중…' : '공지 등록'}
-            </button>
+            </AnimationButton>
           </div>
         </form>
       </div>

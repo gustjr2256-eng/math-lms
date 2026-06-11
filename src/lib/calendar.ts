@@ -13,6 +13,7 @@ export type Schedule = {
   memo: string | null
   created_by: string | null
   created_at: string
+  scope?: 'regular' | 'clinic' // 0012 — 정규/클리닉 캘린더 구분
 }
 
 // 색상 프리셋. 동적 클래스명은 Tailwind가 제거하므로 전체 클래스를 정적으로 보유.

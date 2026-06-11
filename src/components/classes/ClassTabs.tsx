@@ -4,7 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 // 반 대시보드 탭 네비게이션.
-export function ClassTabs({ classId }: { classId: string }) {
+export function ClassTabs({
+  classId,
+  isHomeworkEnabled = true,
+}: {
+  classId: string
+  isHomeworkEnabled?: boolean
+}) {
   const pathname = usePathname()
   const base = `/classes/${classId}`
 
@@ -14,7 +20,8 @@ export function ClassTabs({ classId }: { classId: string }) {
     { href: `${base}/attendance`, label: '출석' },
     { href: `${base}/tests`, label: '성적' },
     { href: `${base}/progress`, label: '진도' },
-    { href: `${base}/homework`, label: '숙제' },
+    // 클리닉반은 숙제 기능 비활성 → 탭 자체를 숨김
+    ...(isHomeworkEnabled ? [{ href: `${base}/homework`, label: '숙제' }] : []),
   ]
 
   return (
@@ -34,7 +41,7 @@ export function ClassTabs({ classId }: { classId: string }) {
           >
             {t.label}
             {active && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand dark:bg-zinc-50" />
+              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand dark:bg-gold" />
             )}
           </Link>
         )

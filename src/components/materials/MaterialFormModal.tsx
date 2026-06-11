@@ -23,10 +23,12 @@ const labelCls = 'text-xs font-medium text-zinc-500 dark:text-zinc-400'
 export function MaterialFormModal({
   mode,
   material,
+  scope = 'regular',
   onClose,
 }: {
   mode: 'create' | 'edit'
   material?: Material
+  scope?: 'regular' | 'clinic'
   onClose: () => void
 }) {
   const action = mode === 'create' ? createMaterial : updateMaterial
@@ -81,6 +83,7 @@ export function MaterialFormModal({
 
         <form action={formAction} className="mt-5 space-y-4">
           {mode === 'edit' && <input type="hidden" name="id" value={material!.id} />}
+          <input type="hidden" name="scope" value={scope} />
           {/* school_level 은 select가 제어값이라 hidden 으로 함께 전송 */}
           <input type="hidden" name="school_level" value={level} />
 

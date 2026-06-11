@@ -30,10 +30,12 @@ export function CalendarBoard({
   schedules,
   currentUserId,
   isAdmin,
+  scope = 'regular',
 }: {
   schedules: Schedule[]
   currentUserId: string
   isAdmin: boolean
+  scope?: 'regular' | 'clinic'
 }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
@@ -83,7 +85,7 @@ export function CalendarBoard({
               const prefix = `${year}-${String(month + 1).padStart(2, '0')}`
               setModal({ mode: 'create', date: today.startsWith(prefix) ? today : `${prefix}-01` })
             }}
-            className="inline-flex h-9 items-center rounded-lg bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-strong"
+            className="inline-flex h-9 items-center rounded-lg bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-strong dark:bg-gold dark:text-[#0a192f] dark:hover:bg-gold-strong"
           >
             + 일정 추가
           </button>
@@ -271,12 +273,13 @@ export function CalendarBoard({
 
       {/* 등록 / 수정 모달 */}
       {modal?.mode === 'create' && (
-        <ScheduleModal mode="create" initialDate={modal.date} onClose={() => setModal(null)} />
+        <ScheduleModal mode="create" initialDate={modal.date} scope={scope} onClose={() => setModal(null)} />
       )}
       {modal?.mode === 'edit' && (
         <ScheduleModal
           mode="edit"
           schedule={modal.schedule}
+          scope={scope}
           canManage={canManage(modal.schedule)}
           childEvents={
             modal.schedule.type === 'period'

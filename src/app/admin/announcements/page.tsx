@@ -10,10 +10,13 @@ export default async function AnnouncementsAdminPage() {
 
   const { data } = await supabase
     .from('announcements')
-    .select('id, title, body, image_url, active, created_at')
+    .select('id, title, body, image_url, active, created_at, target, class_id, body_html')
     .order('created_at', { ascending: false })
 
   const announcements = (data ?? []) as Announcement[]
+
+  const { data: classRows } = await supabase.from('classes').select('id, name').order('name')
+  const classes = classRows ?? []
 
   return (
     <AppShell name={profile?.name} isAdmin>
@@ -24,7 +27,7 @@ export default async function AnnouncementsAdminPage() {
           노출되며, 사용자는 헤더 종 버튼으로 다시 볼 수 있습니다.
         </p>
 
-        <AnnouncementManager announcements={announcements} />
+        <AnnouncementManager announcements={announcements} classes={classes} />
       </AdminGuard>
     </AppShell>
   )

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireAdmin, requireApproved } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sanitizeHtml, htmlToText } from '@/lib/sanitize-html'
 import type { Announcement } from '@/lib/announcements'
 
 export type AnnouncementFormState = { error?: string; ok?: boolean } | undefined
@@ -25,7 +26,7 @@ export async function getActiveAnnouncement(): Promise<Announcement | null> {
   }
   const { data } = await supabase
     .from('announcements')
-    .select('id, title, body, image_url, active, created_at')
+    .select('id, title, body, image_url, active, created_at, target, class_id, body_html')
     .eq('active', true)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -49,13 +50,24 @@ export async function createAnnouncement(
     return { error: (e as Error).message }
   }
 
+  // 본문은 RichTextEditor 가 보낸 HTML(body_html). body(평문)는 검색/폴백용으로 파생.
+  const bodyHtmlRaw = String(formData.get('body_html') ?? '')
+  const bodyText = htmlToText(bodyHtmlRaw)
+
   const parsed = schema.safeParse({
     title: formData.get('title'),
-    body: formData.get('body'),
+    body: bodyText,
   })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? '입력값을 확인하세요.' }
   }
+
+  // 대상: 통합(all) / 특정 반(class)
+  const target = String(formData.get('target') ?? 'all') === 'class' ? 'class' : 'all'
+  const classId = target === 'class' ? String(formData.get('class_id') ?? '') || null : null
+  if (target === 'class' && !classId) return { error: '대상 반을 선택하세요.' }
+
+  const bodyHtml = sanitizeHtml(bodyHtmlRaw)
 
   // 이미지(선택) 업로드 — 공개 버킷
   let imageUrl: string | null = null
@@ -76,10 +88,13 @@ export async function createAnnouncement(
   const { error } = await supabase.from('announcements').insert({
     title: parsed.data.title,
     body: parsed.data.body,
+    body_html: bodyHtml,
+    target,
+    class_id: classId,
     image_url: imageUrl,
     created_by: userId,
   })
-  if (error) return { error: '공지 등록에 실패했습니다.' }
+  if (error) return { error: '공지 등록에 실패했습니다. (0010 마이그레이션 적용 여부를 확인하세요.)' }
 
   revalidatePath('/admin/announcements')
   return { ok: true }

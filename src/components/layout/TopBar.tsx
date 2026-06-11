@@ -71,7 +71,7 @@ export function TopBar({
 
           {/* 유저 프로필 */}
           <div className="flex items-center gap-2 rounded-xl border border-cream-line bg-cream-card py-1 pl-1 pr-3 dark:border-zinc-700 dark:bg-zinc-900">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-xs font-bold text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-xs font-bold text-white dark:bg-gold dark:text-[#0a192f]">
               {initial}
             </span>
             <span className="hidden text-left leading-tight sm:block">

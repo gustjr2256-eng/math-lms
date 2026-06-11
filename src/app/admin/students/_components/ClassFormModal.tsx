@@ -21,15 +21,18 @@ export function ClassFormModal({
   mode,
   cls,
   teachers,
+  classType = 'regular',
   onClose,
 }: {
   mode: 'create' | 'edit'
   cls?: ClassRow
   teachers: { id: string; name: string }[]
+  classType?: 'regular' | 'clinic'
   onClose: () => void
 }) {
   const action = mode === 'create' ? createClass : updateClass
   const [state, formAction, pending] = useActionState<ClassFormState, FormData>(action, undefined)
+  const typeLabel = classType === 'clinic' ? '클리닉반' : '정규반'
 
   useEffect(() => {
     if (state?.ok) onClose()
@@ -43,7 +46,7 @@ export function ClassFormModal({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            {mode === 'create' ? '새 반 만들기' : '반 정보 수정'}
+            {mode === 'create' ? `새 ${typeLabel} 만들기` : `${typeLabel} 정보 수정`}
           </h2>
           <button type="button" onClick={onClose} aria-label="닫기" className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
             ✕
@@ -52,6 +55,7 @@ export function ClassFormModal({
 
         <form action={formAction} className="mt-5 space-y-4">
           {mode === 'edit' && <input type="hidden" name="id" value={cls!.id} />}
+          <input type="hidden" name="class_type" value={classType} />
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -109,7 +113,7 @@ export function ClassFormModal({
             <button
               type="submit"
               disabled={pending}
-              className="h-10 rounded-lg bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-strong disabled:opacity-60"
+              className="h-10 rounded-lg bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-strong disabled:opacity-60 dark:bg-gold dark:text-[#0a192f] dark:hover:bg-gold-strong"
             >
               {pending ? '저장 중…' : mode === 'create' ? '반 생성' : '저장'}
             </button>

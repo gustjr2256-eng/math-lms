@@ -13,25 +13,28 @@ export type ManagedClass = ClassRow & {
 export function ClassManager({
   classes,
   teachers,
+  classType = 'regular',
 }: {
   classes: ManagedClass[]
   teachers: { id: string; name: string }[]
+  classType?: 'regular' | 'clinic'
 }) {
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<ManagedClass | null>(null)
+  const typeLabel = classType === 'clinic' ? '클리닉반' : '정규반'
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <h2 className="font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
-          반 관리 <span className="font-pretendard text-sm text-brand/50">{classes.length}개</span>
+          {typeLabel} 관리 <span className="font-pretendard text-sm text-brand/50">{classes.length}개</span>
         </h2>
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="inline-flex h-9 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-strong"
+          className="inline-flex h-9 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-strong dark:bg-gold dark:text-[#0a192f] dark:hover:bg-gold-strong"
         >
-          + 새 반 만들기
+          + 새 {typeLabel} 만들기
         </button>
       </div>
 
@@ -84,10 +87,10 @@ export function ClassManager({
       </div>
 
       {creating && (
-        <ClassFormModal mode="create" teachers={teachers} onClose={() => setCreating(false)} />
+        <ClassFormModal mode="create" teachers={teachers} classType={classType} onClose={() => setCreating(false)} />
       )}
       {editing && (
-        <ClassFormModal mode="edit" cls={editing} teachers={teachers} onClose={() => setEditing(null)} />
+        <ClassFormModal mode="edit" cls={editing} teachers={teachers} classType={classType} onClose={() => setEditing(null)} />
       )}
     </div>
   )

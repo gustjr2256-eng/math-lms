@@ -52,6 +52,8 @@ export async function createMaterial(
     return { error: parsed.error.issues[0]?.message ?? '입력값을 확인하세요.' }
   }
 
+  const scope = formData.get('scope') === 'clinic' ? 'clinic' : 'regular'
+
   const file = formData.get('file')
   if (!(file instanceof File) || file.size === 0) {
     return { error: '첨부할 파일을 선택하세요.' }
@@ -81,6 +83,7 @@ export async function createMaterial(
     file_path: path,
     file_name: file.name,
     file_size: file.size,
+    scope,
     created_by: userId,
   })
   if (insErr) {
@@ -90,6 +93,7 @@ export async function createMaterial(
   }
 
   revalidatePath('/materials')
+  revalidatePath('/clinic/materials')
   return { ok: true }
 }
 

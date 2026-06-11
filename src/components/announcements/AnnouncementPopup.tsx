@@ -31,7 +31,7 @@ export function AnnouncementPopup() {
             aria-modal="true"
           >
             {/* 브랜드 헤더 바 — 강한 대비로 눈에 띄게 */}
-            <div className="flex items-center justify-between bg-brand px-6 py-4 text-white">
+            <div className="flex items-center justify-between bg-brand px-6 py-4 text-white dark:bg-gold dark:text-[#0a192f]">
               <span className="flex items-center gap-2 font-paperozi text-sm font-bold tracking-wide">
                 <span className="text-lg">📢</span> 학원 공지
               </span>
@@ -52,12 +52,25 @@ export function AnnouncementPopup() {
             )}
 
             <div className="px-7 py-6">
+              {announcement.target === 'class' && (
+                <span className="mb-2 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 font-pretendard text-[11px] font-medium text-brand dark:bg-zinc-800 dark:text-zinc-300">
+                  특정 반 공지
+                </span>
+              )}
               <h2 className="font-paperozi text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                 {announcement.title}
               </h2>
-              <p className="mt-4 whitespace-pre-wrap font-pretendard text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300">
-                {announcement.body}
-              </p>
+              {announcement.body_html ? (
+                // body_html 은 createAnnouncement 에서 sanitize 된 신뢰 콘텐츠(원장 작성)
+                <div
+                  className="mt-4 font-pretendard text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300 [&_h3]:mt-3 [&_h3]:font-paperozi [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-zinc-900 dark:[&_h3]:text-zinc-100 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+                  dangerouslySetInnerHTML={{ __html: announcement.body_html }}
+                />
+              ) : (
+                <p className="mt-4 whitespace-pre-wrap font-pretendard text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300">
+                  {announcement.body}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between gap-3 border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
@@ -71,7 +84,7 @@ export function AnnouncementPopup() {
               <button
                 type="button"
                 onClick={close}
-                className="h-11 rounded-xl bg-brand px-7 font-pretendard text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-strong"
+                className="h-11 rounded-xl bg-brand px-7 font-pretendard text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-strong dark:bg-gold dark:text-[#0a192f] dark:hover:bg-gold-strong"
               >
                 확인했습니다
               </button>

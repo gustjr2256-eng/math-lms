@@ -28,10 +28,12 @@ export function MaterialsBrowser({
   materials,
   currentUserId,
   isAdmin,
+  scope = 'regular',
 }: {
   materials: Material[]
   currentUserId: string
   isAdmin: boolean
+  scope?: 'regular' | 'clinic'
 }) {
   const [level, setLevel] = useState<SchoolLevel>('중등부')
   const [grade, setGrade] = useState<string | null>(null) // null = 전체
@@ -190,10 +192,10 @@ export function MaterialsBrowser({
 
       {/* 업로드 / 수정 모달 */}
       {creating && (
-        <MaterialFormModal mode="create" onClose={() => setCreating(false)} />
+        <MaterialFormModal mode="create" scope={scope} onClose={() => setCreating(false)} />
       )}
       {editing && (
-        <MaterialFormModal mode="edit" material={editing} onClose={() => setEditing(null)} />
+        <MaterialFormModal mode="edit" material={editing} scope={scope} onClose={() => setEditing(null)} />
       )}
     </div>
   )

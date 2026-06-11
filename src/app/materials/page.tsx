@@ -13,6 +13,7 @@ export default async function MaterialsPage() {
     .select(
       'id, title, description, school_level, grade, category, file_path, file_name, file_size, created_by, created_at, uploader:users!materials_created_by_fkey(name)'
     )
+    .eq('scope', 'regular')
     .order('created_at', { ascending: false })
 
   const materials = (data ?? []) as unknown as Material[]
@@ -25,7 +26,7 @@ export default async function MaterialsPage() {
         노출되지 않습니다.
       </p>
 
-      <MaterialsBrowser materials={materials} currentUserId={user.id} isAdmin={isAdmin} />
+      <MaterialsBrowser materials={materials} currentUserId={user.id} isAdmin={isAdmin} scope="regular" />
     </AppShell>
   )
 }

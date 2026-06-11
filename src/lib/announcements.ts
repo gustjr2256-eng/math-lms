@@ -7,6 +7,10 @@ export type Announcement = {
   image_url: string | null
   active: boolean
   created_at: string
+  // 0010 — 반 타겟팅 + 서식 본문(HTML). 미적용 환경에선 undefined.
+  target?: 'all' | 'class'
+  class_id?: string | null
+  body_html?: string | null
 }
 
 const DISMISS_KEY = 'announcement-dismissed'

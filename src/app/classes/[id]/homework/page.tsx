@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { requireApproved } from '@/lib/auth'
 import { deleteHomework, reviewSubmission } from '@/app/actions/homework'
 import { HomeworkForm } from '@/components/homework/HomeworkForm'
@@ -39,6 +40,16 @@ export default async function HomeworkTab({
   const { id } = await params
   const { hw: selectedId } = await searchParams
   const { supabase } = await requireApproved()
+
+  // 클리닉반은 숙제 기능 비활성 → 직접 접근 시 반 요약으로 리다이렉트
+  const { data: clsType } = await supabase
+    .from('classes')
+    .select('class_type')
+    .eq('id', id)
+    .maybeSingle()
+  if ((clsType as { class_type?: string } | null)?.class_type === 'clinic') {
+    redirect(`/classes/${id}`)
+  }
 
   const { data: hwData } = await supabase
     .from('homework')

@@ -1,0 +1,155 @@
+/* ============================================================
+ * AnimationButton — 호버 시 테두리가 부드럽게 감싸지는 버튼
+ *   기본: 버건디(#792316) 솔리드 + 떠 있는 box-shadow
+ *   호버: 배경 투명 + 글자 브랜드색 + 테두리가 모서리를 감싸며 그려짐
+ *   색상은 globals.css 의 --color-brand 토큰을 재사용해 테마와 일치
+ * ============================================================ */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  border: 0;
+  border-radius: 0.625rem; /* 10px — 시스템 rounded-lg 와 동일 톤 */
+  background-color: var(--color-brand, #792316);
+  color: #fff;
+
+  /* 본문 폰트(Pretendard)와 어울리도록 자간/행간 조절 */
+  font-family: 'Pretendard', ui-sans-serif, system-ui, 'Apple SD Gothic Neo', sans-serif;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  isolation: isolate;
+
+  /* 떠 있는 입체감 (라이트 모드) */
+  box-shadow:
+    0 8px 18px -6px rgba(121, 35, 22, 0.45),
+    0 3px 6px -3px rgba(121, 35, 22, 0.35);
+
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease,
+    transform 0.15s ease;
+}
+
+/* 눌렀을 때 살짝 가라앉는 느낌 */
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* 내용(아이콘/라벨)은 테두리 의사요소 위로 */
+.label,
+.icon {
+  position: relative;
+  z-index: 2;
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.05em;
+  line-height: 0;
+}
+
+/* ---- 감싸는 테두리: 두 의사요소가 모서리에서 만남 ---- */
+.btn::before,
+.btn::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  box-sizing: border-box;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+/* 상단(좌→우) → 우측(상→하) */
+.btn::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid var(--color-brand, #792316);
+  border-right: 2px solid var(--color-brand, #792316);
+  transition: width 0.2s ease 0.2s, height 0.2s ease 0s; /* 되돌아갈 때: 세로 먼저 */
+}
+/* 하단(우→좌) → 좌측(하→상) */
+.btn::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid var(--color-brand, #792316);
+  border-left: 2px solid var(--color-brand, #792316);
+  transition: width 0.2s ease 0.2s, height 0.2s ease 0s;
+}
+
+/* ---- 호버: 배경 투명 + 테두리 드로잉 ---- */
+.btn:hover:not(:disabled) {
+  background-color: transparent;
+  color: var(--color-brand, #792316);
+  box-shadow:
+    0 6px 14px -8px rgba(121, 35, 22, 0.35),
+    0 2px 4px -3px rgba(121, 35, 22, 0.25);
+}
+.btn:hover:not(:disabled)::before,
+.btn:hover:not(:disabled)::after {
+  width: 100%;
+  height: 100%;
+  transition: width 0.2s ease 0s, height 0.2s ease 0.2s; /* 감쌀 때: 가로 먼저 */
+}
+
+/* ---- 크기 (padding / font-size 로 제어) ---- */
+.sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem; /* 13px */
+}
+.md {
+  padding: 0.6rem 1.15rem;
+  font-size: 0.875rem; /* 14px */
+}
+.lg {
+  padding: 0.8rem 1.5rem;
+  font-size: 0.95rem; /* 15px */
+}
+
+.full {
+  width: 100%;
+}
+
+/* ---- 비활성 ---- */
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================
+ * 다크 모드 (html.dark) — 네이비 배경 위 골드 CTA
+ *   기본: 골드(#FFD700) 배경 + 네이비 글자(대비 확보)
+ *   호버: 배경 투명 + 골드 글자/테두리 드로잉
+ * ============================================================ */
+:global(.dark) .btn {
+  background-color: #ffd700;
+  color: #0a192f;
+  box-shadow:
+    0 8px 20px -8px rgba(255, 215, 0, 0.25),
+    0 2px 6px -3px rgba(0, 0, 0, 0.5);
+}
+:global(.dark) .btn::before,
+:global(.dark) .btn::after {
+  border-color: #ffd700;
+}
+:global(.dark) .btn:hover:not(:disabled) {
+  background-color: transparent;
+  color: #ffd700; /* 네이비 배경에서 선명한 골드 */
+  box-shadow: 0 6px 16px -10px rgba(255, 215, 0, 0.3);
+}
+:global(.dark) .btn:hover:not(:disabled)::before,
+:global(.dark) .btn:hover:not(:disabled)::after {
+  border-color: #ffd700;
+}
+:global(.dark) .btn:disabled {
+  box-shadow: none;
+}

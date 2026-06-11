@@ -12,6 +12,7 @@ const classSchema = z.object({
   day_of_week: z.string().trim().min(1, { message: '요일을 입력하세요.' }),
   time: z.string().trim().min(1, { message: '시간을 입력하세요.' }),
   teacher_id: z.string().uuid({ message: '담당 강사를 선택하세요.' }),
+  class_type: z.enum(['regular', 'clinic']).default('regular'),
 })
 
 // 반 생성 — 원장 전용. 담당 강사 지정 포함.
@@ -32,6 +33,7 @@ export async function createClass(
     day_of_week: formData.get('day_of_week'),
     time: formData.get('time'),
     teacher_id: formData.get('teacher_id'),
+    class_type: formData.get('class_type') ?? 'regular',
   })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? '입력값을 확인하세요.' }
@@ -41,7 +43,10 @@ export async function createClass(
   if (error) return { error: error.message }
 
   revalidatePath('/classes')
-  revalidatePath('/admin/students') // 반 생성 폼이 이 페이지로 이동 + 반 배정 드롭다운 갱신
+  revalidatePath('/clinic')
+  revalidatePath('/admin/classes')
+  revalidatePath('/admin/clinics')
+  revalidatePath('/admin/students') // 반 배정 드롭다운 갱신
   return { ok: true }
 }
 
@@ -66,6 +71,7 @@ export async function updateClass(
     day_of_week: formData.get('day_of_week'),
     time: formData.get('time'),
     teacher_id: formData.get('teacher_id'),
+    class_type: formData.get('class_type') ?? 'regular',
   })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? '입력값을 확인하세요.' }
@@ -75,7 +81,10 @@ export async function updateClass(
   if (error) return { error: error.message }
 
   revalidatePath('/classes')
+  revalidatePath('/clinic')
   revalidatePath(`/classes/${id}`)
+  revalidatePath('/admin/classes')
+  revalidatePath('/admin/clinics')
   revalidatePath('/admin/students')
   return { ok: true }
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from 'react'
 import { createClass, type ClassFormState } from '@/app/actions/classes'
+import { AnimationButton } from '@/components/ui/AnimationButton'
 
 type TeacherOption = { id: string; name: string }
 
@@ -54,13 +55,9 @@ export function ClassCreateForm({ teachers }: { teachers: TeacherOption[] }) {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="sm:col-span-2 h-10 rounded-lg bg-brand font-pretendard text-sm font-semibold text-white transition-colors hover:bg-brand-strong disabled:opacity-60"
-        >
+        <AnimationButton type="submit" fullWidth disabled={pending} className="sm:col-span-2">
           {pending ? '생성 중…' : '반 생성'}
-        </button>
+        </AnimationButton>
 
         {teachers.length === 0 && (
           <p className="sm:col-span-2 text-xs text-amber-600">

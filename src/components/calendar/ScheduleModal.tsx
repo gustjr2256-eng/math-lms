@@ -20,10 +20,11 @@ const inputCls =
 const labelCls = 'text-xs font-medium text-zinc-500 dark:text-zinc-400'
 
 type Props =
-  | { mode: 'create'; initialDate: string; onClose: () => void }
+  | { mode: 'create'; initialDate: string; scope: 'regular' | 'clinic'; onClose: () => void }
   | {
       mode: 'edit'
       schedule: Schedule
+      scope: 'regular' | 'clinic'
       canManage: boolean
       childEvents?: Schedule[]
       onClose: () => void
@@ -102,6 +103,7 @@ export function ScheduleModal(props: Props) {
           {isEdit && <input type="hidden" name="id" value={sch!.id} />}
           <input type="hidden" name="type" value={type} />
           <input type="hidden" name="color" value={color} />
+          <input type="hidden" name="scope" value={props.scope} />
 
           {/* 유형 선택 */}
           <div>

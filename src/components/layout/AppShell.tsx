@@ -23,7 +23,7 @@ export function AppShell({
 
   return (
     <AnnouncementProvider>
-    <div className="min-h-screen bg-cream dark:bg-black">
+    <div className="min-h-screen bg-cream dark:bg-[#0a192f]">
       {/* 데스크탑 고정 사이드바 (280px) */}
       <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-cream-line dark:border-zinc-800 md:block">
         <Sidebar isAdmin={isAdmin} />
