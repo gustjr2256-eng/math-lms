@@ -85,17 +85,19 @@ export default async function TestsTab({
                           {t.test_date} · {t.full_score}점
                         </span>
                       </Link>
-                      <form action={deleteTest}>
-                        <input type="hidden" name="id" value={t.id} />
-                        <input type="hidden" name="class_id" value={id} />
-                        <button
-                          type="submit"
-                          className="ml-2 text-xs text-red-500 hover:underline"
-                          title="시험 삭제"
-                        >
-                          삭제
-                        </button>
-                      </form>
+                      {permissions.scores && (
+                        <form action={deleteTest}>
+                          <input type="hidden" name="id" value={t.id} />
+                          <input type="hidden" name="class_id" value={id} />
+                          <button
+                            type="submit"
+                            className="ml-2 text-xs text-red-500 hover:underline"
+                            title="시험 삭제"
+                          >
+                            삭제
+                          </button>
+                        </form>
+                      )}
                     </div>
                   </li>
                 )

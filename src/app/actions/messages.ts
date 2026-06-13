@@ -38,14 +38,28 @@ export async function sendTargetedMessage(input: SendMessageInput): Promise<Send
   if (input.studentIds.length === 0) return { ok: false, error: '받는 학생을 선택하세요.' }
   if (input.message.trim() === '') return { ok: false, error: '메시지 내용을 입력하세요.' }
 
-  // 비원장은 담당 반(ACTIVE) 학생에게만 발송 가능 — 사용자 컨텍스트 RLS로 스코프 강제.
+  // 비원장은 담당 반 학생에게만 발송 가능.
+  // 주의: RLS 가시성에 의존하면 안 된다 — view_all_classes 권한이 켜진 강사는 students/classes
+  // SELECT 가 전체로 넓어지므로(0013 permissive 정책), 여기서 명시적으로 teacher_id 로 본인 반을
+  // 한정해 타 반 학생 번호 유출(PII)을 막는다.
   if (!isAdmin) {
-    const { data: allowed } = await supabase
-      .from('students')
+    const { data: ownClasses } = await supabase
+      .from('classes')
       .select('id')
+      .eq('teacher_id', userId)
+    const ownClassIds = new Set((ownClasses ?? []).map((c) => c.id))
+
+    const { data: rows } = await supabase
+      .from('students')
+      .select('id, class_id')
       .in('id', input.studentIds)
-    const allowedIds = new Set((allowed ?? []).map((s) => s.id))
-    if (input.studentIds.some((id) => !allowedIds.has(id))) {
+    const classById = new Map((rows ?? []).map((r) => [r.id, r.class_id]))
+
+    const allInOwnClass = input.studentIds.every((id) => {
+      const cid = classById.get(id)
+      return cid != null && ownClassIds.has(cid)
+    })
+    if (!allInOwnClass) {
       return { ok: false, error: '담당 반 학생에게만 발송할 수 있습니다.' }
     }
   }

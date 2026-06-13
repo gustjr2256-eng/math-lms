@@ -63,13 +63,15 @@ export default async function ProgressTab({
                   </div>
                   {p.memo && <p className="mt-1 text-xs text-zinc-400">{p.memo}</p>}
                 </div>
-                <form action={deleteProgress}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <input type="hidden" name="class_id" value={id} />
-                  <button type="submit" className="text-xs text-red-500 hover:underline">
-                    삭제
-                  </button>
-                </form>
+                {permissions.progress && (
+                  <form action={deleteProgress}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="class_id" value={id} />
+                    <button type="submit" className="text-xs text-red-500 hover:underline">
+                      삭제
+                    </button>
+                  </form>
+                )}
               </li>
             ))}
           </ul>
