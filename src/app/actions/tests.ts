@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { requireApproved } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth'
 
 export type TestFormState = { error?: string; ok?: boolean } | undefined
 
@@ -21,7 +21,7 @@ export async function createTest(
 ): Promise<TestFormState> {
   let supabase
   try {
-    ;({ supabase } = await requireApproved())
+    ;({ supabase } = await requirePermission('scores'))
   } catch (e) {
     return { error: (e as Error).message }
   }
@@ -45,7 +45,7 @@ export async function createTest(
 }
 
 export async function deleteTest(formData: FormData) {
-  const { supabase } = await requireApproved()
+  const { supabase } = await requirePermission('scores')
   const id = formData.get('id')
   const classId = formData.get('class_id')
   if (typeof id !== 'string' || !id) throw new Error('대상이 올바르지 않습니다.')
@@ -64,7 +64,7 @@ export type SaveScoresInput = {
 
 // 점수 일괄 저장 (엑셀식 입력). 빈 칸은 호출 전에 제외된다.
 export async function saveScores(input: SaveScoresInput) {
-  const { supabase } = await requireApproved()
+  const { supabase } = await requirePermission('scores')
 
   const rows = input.scores.map((s) => ({
     test_id: input.testId,
