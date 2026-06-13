@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import {
   approveTeacher,
   suspendTeacher,
   reactivateTeacher,
   deleteTeacher,
 } from '@/app/actions/admin'
+import { TeacherPermissionsModal } from './TeacherPermissionsModal'
+import { type PermissionKey } from '@/lib/permissions'
 
 type Status = 'pending' | 'approved' | 'suspended'
 
@@ -16,10 +19,16 @@ const baseBtn =
 export function TeacherRowActions({
   userId,
   status,
+  name,
+  permissions,
 }: {
   userId: string
   status: Status
+  name: string
+  permissions: Record<PermissionKey, boolean>
 }) {
+  const [permOpen, setPermOpen] = useState(false)
+
   return (
     <div className="flex flex-wrap justify-end gap-2">
       {status !== 'approved' && (
@@ -45,6 +54,26 @@ export function TeacherRowActions({
             정지
           </button>
         </ActionForm>
+      )}
+
+      {status === 'approved' && (
+        <>
+          <button
+            type="button"
+            onClick={() => setPermOpen(true)}
+            className={`${baseBtn} border border-cream-line text-brand hover:bg-brand-tint dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800`}
+          >
+            권한 설정
+          </button>
+          {permOpen && (
+            <TeacherPermissionsModal
+              userId={userId}
+              name={name}
+              current={permissions}
+              onClose={() => setPermOpen(false)}
+            />
+          )}
+        </>
       )}
 
       <ActionForm
