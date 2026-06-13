@@ -22,8 +22,7 @@ export default async function ClinicPage() {
         {isAdmin ? '전체 클리닉반' : '담당 클리닉반'}
       </h1>
       <p className="mt-2 text-sm text-brand/70 dark:text-zinc-400">
-        클리닉반은 출석·성적·진도를 관리합니다(숙제 기능 없음).
-        {isAdmin ? ' 반 생성은 [원장 통합 관리 → 클리닉반 관리]에서 합니다.' : ''}
+        담당 선생님들은 해당반에 들어가 학생출석, 진도, 성적을 관리해주세요.
       </p>
 
       <div className="mt-6">

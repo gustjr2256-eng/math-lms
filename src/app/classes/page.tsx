@@ -22,9 +22,7 @@ export default async function ClassesPage() {
         {isAdmin ? '전체 정규반' : '담당 정규반'}
       </h1>
       <p className="mt-2 text-sm text-brand/70 dark:text-zinc-400">
-        {isAdmin
-          ? '각 반을 눌러 학생 명단·수업을 관리합니다. 반 생성·담당 강사 지정은 [원장 통합 관리 → 정규반 관리]에서 합니다.'
-          : '담당하는 정규반의 학생 명단을 관리할 수 있습니다.'}
+        담당 선생님들은 해당반에 들어가 학생출석, 진도, 성적, 숙제를 관리해주세요.
       </p>
 
       <div className="mt-6">
