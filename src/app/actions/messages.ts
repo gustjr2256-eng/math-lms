@@ -1,6 +1,6 @@
 'use server'
 
-import { requireAdmin } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendBulk, type MessageChannel } from '@/lib/messaging'
 
@@ -25,16 +25,30 @@ export type SendMessageResult = {
 export async function sendTargetedMessage(input: SendMessageInput): Promise<SendMessageResult> {
   let supabase
   let userId
+  let isAdmin = false
   try {
-    const ctx = await requireAdmin()
+    const ctx = await requirePermission('messaging')
     supabase = ctx.supabase
     userId = ctx.user.id
+    isAdmin = ctx.isAdmin
   } catch (e) {
     return { ok: false, error: (e as Error).message }
   }
 
   if (input.studentIds.length === 0) return { ok: false, error: '받는 학생을 선택하세요.' }
   if (input.message.trim() === '') return { ok: false, error: '메시지 내용을 입력하세요.' }
+
+  // 비원장은 담당 반(ACTIVE) 학생에게만 발송 가능 — 사용자 컨텍스트 RLS로 스코프 강제.
+  if (!isAdmin) {
+    const { data: allowed } = await supabase
+      .from('students')
+      .select('id')
+      .in('id', input.studentIds)
+    const allowedIds = new Set((allowed ?? []).map((s) => s.id))
+    if (input.studentIds.some((id) => !allowedIds.has(id))) {
+      return { ok: false, error: '담당 반 학생에게만 발송할 수 있습니다.' }
+    }
+  }
 
   const admin = createAdminClient()
   const { data: students } = await admin

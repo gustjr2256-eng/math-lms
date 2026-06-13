@@ -6,6 +6,7 @@ export type NavGroup = { label: string; icon: string; adminOnly?: boolean; child
 // 상단 flat 메뉴(전 강사·원장)
 export const MAIN_NAV: NavItem[] = [
   { href: '/dashboard', label: '대시보드', icon: '🏠' },
+  { href: '/messages', label: '메시지 발송', icon: '✉️' },
 ]
 
 // 그룹(아코디언) — 모든 그룹은 사이드바에서 기본 '열림'으로 렌더된다.
@@ -39,7 +40,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/clinics', label: '클리닉반 관리', icon: '🧪' },
       { href: '/admin/teachers', label: '강사 관리', icon: '🧑‍🏫' },
       { href: '/admin/announcements', label: '공지 관리', icon: '📢' },
-      { href: '/admin/messages', label: '메시지 발송', icon: '✉️' },
       { href: '/admin/settings', label: '학원 설정', icon: '⚙️' },
     ],
   },
