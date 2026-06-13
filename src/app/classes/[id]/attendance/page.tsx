@@ -12,7 +12,7 @@ export default async function AttendanceTab({
 }) {
   const { id } = await params
   const { date: dateParam } = await searchParams
-  const { supabase } = await requireApproved()
+  const { supabase, permissions } = await requireApproved()
 
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
   const date = dateParam ?? today
@@ -39,7 +39,7 @@ export default async function AttendanceTab({
   return (
     <div>
       <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">출석 관리</h2>
-      <AttendanceBoard classId={id} date={date} students={students} initial={initial} />
+      <AttendanceBoard classId={id} date={date} students={students} initial={initial} canEdit={permissions.attendance} />
     </div>
   )
 }

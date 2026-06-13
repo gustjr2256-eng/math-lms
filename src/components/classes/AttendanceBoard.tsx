@@ -21,11 +21,13 @@ export function AttendanceBoard({
   date,
   students,
   initial,
+  canEdit = true,
 }: {
   classId: string
   date: string
   students: Student[]
   initial: Record<string, AttStatus>
+  canEdit?: boolean
 }) {
   const router = useRouter()
   const [marks, setMarks] = useState<Record<string, AttStatus>>(initial)
@@ -60,21 +62,26 @@ export function AttendanceBoard({
           />
         </label>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setAll('출석')}
-            className="h-9 rounded-lg border border-zinc-300 px-3 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-          >
-            전체 출석
-          </button>
-          <button
-            type="button"
-            onClick={save}
-            disabled={pending}
-            className="h-9 rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            {pending ? '저장 중…' : '저장'}
-          </button>
+          {!canEdit && <span className="text-xs text-brand/50 dark:text-zinc-400">읽기 전용</span>}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setAll('출석')}
+              className="h-9 rounded-lg border border-zinc-300 px-3 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              전체 출석
+            </button>
+          )}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={save}
+              disabled={pending}
+              className="h-9 rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {pending ? '저장 중…' : '저장'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -103,7 +110,8 @@ export function AttendanceBoard({
                     <button
                       key={st}
                       type="button"
-                      onClick={() => setMarks((m) => ({ ...m, [s.id]: st }))}
+                      disabled={!canEdit}
+                      onClick={canEdit ? () => setMarks((m) => ({ ...m, [s.id]: st })) : undefined}
                       className={
                         'h-8 w-12 rounded-md border text-xs font-medium transition-colors ' +
                         (active

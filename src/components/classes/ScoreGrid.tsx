@@ -12,12 +12,14 @@ export function ScoreGrid({
   fullScore,
   students,
   initial,
+  canEdit = true,
 }: {
   testId: string
   classId: string
   fullScore: number
   students: Student[]
   initial: Record<string, string>
+  canEdit?: boolean
 }) {
   const [scores, setScores] = useState<Record<string, string>>(initial)
   const [pending, startTransition] = useTransition()
@@ -50,14 +52,16 @@ export function ScoreGrid({
           만점 {fullScore}점 · 평균{' '}
           <span className="font-semibold text-zinc-900 dark:text-zinc-50">{avg ?? '—'}</span>
         </p>
-        <button
-          type="button"
-          onClick={save}
-          disabled={pending}
-          className="h-9 rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          {pending ? '저장 중…' : '점수 저장'}
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={save}
+            disabled={pending}
+            className="h-9 rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            {pending ? '저장 중…' : '점수 저장'}
+          </button>
+        )}
       </div>
 
       {msg && (
@@ -86,6 +90,8 @@ export function ScoreGrid({
                 value={scores[s.id] ?? ''}
                 onChange={(e) => setScores((m) => ({ ...m, [s.id]: e.target.value }))}
                 placeholder="—"
+                disabled={!canEdit}
+                readOnly={!canEdit}
                 className="h-9 w-24 rounded-md border border-zinc-300 bg-white px-2 text-right text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100"
               />
             </li>

@@ -5,7 +5,7 @@ import type { Material } from '@/lib/materials'
 
 // 클리닉반 전용 자료실. 정규 자료실과 컴포넌트를 공유하고 scope='clinic' 만 다르다.
 export default async function ClinicMaterialsPage() {
-  const { supabase, user, isAdmin, profile } = await requireApproved()
+  const { supabase, user, isAdmin, profile, permissions } = await requireApproved()
 
   const { data } = await supabase
     .from('materials')
@@ -24,7 +24,7 @@ export default async function ClinicMaterialsPage() {
         클리닉반 전용 학습 자료를 등록·관리합니다. 강사진 전용 공간이며 학생에게는 노출되지 않습니다.
       </p>
 
-      <MaterialsBrowser materials={materials} currentUserId={user.id} isAdmin={isAdmin} scope="clinic" />
+      <MaterialsBrowser materials={materials} currentUserId={user.id} isAdmin={isAdmin} scope="clinic" canUpload={permissions.materials_upload} />
     </AppShell>
   )
 }
