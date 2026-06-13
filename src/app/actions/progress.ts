@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { requireApproved } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth'
 
 export type ProgressFormState = { error?: string; ok?: boolean } | undefined
 
@@ -27,7 +27,7 @@ export async function addProgress(
 ): Promise<ProgressFormState> {
   let supabase
   try {
-    ;({ supabase } = await requireApproved())
+    ;({ supabase } = await requirePermission('progress'))
   } catch (e) {
     return { error: (e as Error).message }
   }
@@ -62,7 +62,7 @@ export async function addProgress(
 }
 
 export async function deleteProgress(formData: FormData) {
-  const { supabase } = await requireApproved()
+  const { supabase } = await requirePermission('progress')
   const id = formData.get('id')
   const classId = formData.get('class_id')
   if (typeof id !== 'string' || !id) throw new Error('대상이 올바르지 않습니다.')

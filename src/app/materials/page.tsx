@@ -6,7 +6,7 @@ import type { Material } from '@/lib/materials'
 // 강사·원장 전용 내부 자료실. proxy가 승인 사용자만 통과시키므로
 // 학생(계정 없음)은 구조적으로 도달할 수 없다.
 export default async function MaterialsPage() {
-  const { supabase, user, isAdmin, profile } = await requireApproved()
+  const { supabase, user, isAdmin, profile, permissions } = await requireApproved()
 
   const { data } = await supabase
     .from('materials')
@@ -26,7 +26,7 @@ export default async function MaterialsPage() {
         노출되지 않습니다.
       </p>
 
-      <MaterialsBrowser materials={materials} currentUserId={user.id} isAdmin={isAdmin} scope="regular" />
+      <MaterialsBrowser materials={materials} currentUserId={user.id} isAdmin={isAdmin} scope="regular" canUpload={permissions.materials_upload} />
     </AppShell>
   )
 }

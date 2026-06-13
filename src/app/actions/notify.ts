@@ -1,6 +1,6 @@
 'use server'
 
-import { requireApproved } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendBulk, type MessageChannel } from '@/lib/messaging'
 
@@ -26,7 +26,7 @@ export type NotifyResult = {
 export async function sendNotifications(input: NotifyInput): Promise<NotifyResult> {
   let supabase, user
   try {
-    ;({ supabase, user } = await requireApproved())
+    ;({ supabase, user } = await requirePermission('homework'))
   } catch (e) {
     return { ok: false, error: (e as Error).message }
   }

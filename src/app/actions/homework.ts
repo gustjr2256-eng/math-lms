@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { requireApproved } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export type HomeworkFormState = { error?: string; ok?: boolean } | undefined
@@ -23,7 +23,7 @@ export async function createHomework(
 ): Promise<HomeworkFormState> {
   let supabase
   try {
-    ;({ supabase } = await requireApproved())
+    ;({ supabase } = await requirePermission('homework'))
   } catch (e) {
     return { error: (e as Error).message }
   }
@@ -51,7 +51,7 @@ export async function createHomework(
 }
 
 export async function deleteHomework(formData: FormData) {
-  const { supabase } = await requireApproved()
+  const { supabase } = await requirePermission('homework')
   const id = formData.get('id')
   const classId = formData.get('class_id')
   if (typeof id !== 'string' || !id) throw new Error('대상이 올바르지 않습니다.')
@@ -64,7 +64,7 @@ export async function deleteHomework(formData: FormData) {
 
 // 제출물 채점 (완료/미흡)
 export async function reviewSubmission(formData: FormData) {
-  const { supabase } = await requireApproved()
+  const { supabase } = await requirePermission('homework')
   const id = formData.get('id')
   const review = formData.get('review')
   const classId = formData.get('class_id')

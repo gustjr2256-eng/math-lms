@@ -39,7 +39,10 @@ export default async function HomeworkTab({
 }) {
   const { id } = await params
   const { hw: selectedId } = await searchParams
-  const { supabase } = await requireApproved()
+  const { supabase, permissions } = await requireApproved()
+
+  // 숙제 권한 없으면 반 요약으로 리다이렉트
+  if (!permissions.homework) redirect(`/classes/${id}`)
 
   // 클리닉반은 숙제 기능 비활성 → 직접 접근 시 반 요약으로 리다이렉트
   const { data: clsType } = await supabase

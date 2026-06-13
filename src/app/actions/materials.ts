@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { requireApproved } from '@/lib/auth'
+import { requireApproved, requirePermission } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { GRADES_BY_LEVEL, SCHOOL_LEVELS, CATEGORIES } from '@/lib/materials'
 
@@ -34,7 +34,7 @@ export async function createMaterial(
   let supabase
   let userId
   try {
-    const ctx = await requireApproved()
+    const ctx = await requirePermission('materials_upload')
     supabase = ctx.supabase
     userId = ctx.user.id
   } catch (e) {

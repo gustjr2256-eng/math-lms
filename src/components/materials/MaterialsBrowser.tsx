@@ -29,11 +29,13 @@ export function MaterialsBrowser({
   currentUserId,
   isAdmin,
   scope = 'regular',
+  canUpload = true,
 }: {
   materials: Material[]
   currentUserId: string
   isAdmin: boolean
   scope?: 'regular' | 'clinic'
+  canUpload?: boolean
 }) {
   const [level, setLevel] = useState<SchoolLevel>('중등부')
   const [grade, setGrade] = useState<string | null>(null) // null = 전체
@@ -79,13 +81,15 @@ export function MaterialsBrowser({
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setCreating(true)}
-          className="mb-2 inline-flex h-9 items-center rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          + 새 자료 업로드
-        </button>
+        {canUpload && (
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="mb-2 inline-flex h-9 items-center rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            + 새 자료 업로드
+          </button>
+        )}
       </div>
 
       {/* 세부 필터: 학년 / 카테고리 */}
@@ -191,7 +195,7 @@ export function MaterialsBrowser({
       </div>
 
       {/* 업로드 / 수정 모달 */}
-      {creating && (
+      {creating && canUpload && (
         <MaterialFormModal mode="create" scope={scope} onClose={() => setCreating(false)} />
       )}
       {editing && (

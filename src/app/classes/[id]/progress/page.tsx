@@ -19,7 +19,7 @@ export default async function ProgressTab({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const { supabase } = await requireApproved()
+  const { supabase, permissions } = await requireApproved()
 
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 
@@ -35,7 +35,7 @@ export default async function ProgressTab({
     <div>
       <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">진도 관리</h2>
 
-      <ProgressForm classId={id} today={today} />
+      {permissions.progress && <ProgressForm classId={id} today={today} />}
 
       <div className="mt-6">
         <h3 className="mb-2 text-sm font-medium text-zinc-500">진도 누적 ({rows.length}회)</h3>
@@ -63,13 +63,15 @@ export default async function ProgressTab({
                   </div>
                   {p.memo && <p className="mt-1 text-xs text-zinc-400">{p.memo}</p>}
                 </div>
-                <form action={deleteProgress}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <input type="hidden" name="class_id" value={id} />
-                  <button type="submit" className="text-xs text-red-500 hover:underline">
-                    삭제
-                  </button>
-                </form>
+                {permissions.progress && (
+                  <form action={deleteProgress}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="class_id" value={id} />
+                    <button type="submit" className="text-xs text-red-500 hover:underline">
+                      삭제
+                    </button>
+                  </form>
+                )}
               </li>
             ))}
           </ul>

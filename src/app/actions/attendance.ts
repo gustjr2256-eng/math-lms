@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireApproved } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth'
 
 export type AttStatus = '출석' | '결석' | '지각' | '조퇴'
 
@@ -13,7 +13,7 @@ export type SaveAttendanceInput = {
 
 // 반별·일별 출결 일괄 저장 (upsert). RLS가 담당 반만 허용.
 export async function saveAttendance(input: SaveAttendanceInput) {
-  const { supabase } = await requireApproved()
+  const { supabase } = await requirePermission('attendance')
 
   const rows = input.records.map((r) => ({
     class_id: input.classId,

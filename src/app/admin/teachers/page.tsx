@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/auth'
 import { AppShell } from '@/components/layout/AppShell'
 import { AdminGuard } from '@/components/auth/AdminGuard'
 import { TeacherRowActions } from './_components/TeacherRowActions'
+import { resolvePermissions } from '@/lib/permissions'
 
 type Status = 'pending' | 'approved' | 'suspended'
 
@@ -11,6 +12,7 @@ type Teacher = {
   email: string
   status: Status
   created_at: string
+  permissions?: unknown
 }
 
 const SECTIONS: { status: Status; label: string; hint: string }[] = [
@@ -26,7 +28,7 @@ export default async function TeachersAdminPage() {
 
   const { data } = await supabase
     .from('users')
-    .select('id, name, email, status, created_at')
+    .select('id, name, email, status, created_at, permissions')
     .eq('role', 'teacher')
     .order('created_at', { ascending: true })
 
@@ -76,7 +78,12 @@ export default async function TeachersAdminPage() {
                             {t.email} · 가입 {formatDate(t.created_at)}
                           </p>
                         </div>
-                        <TeacherRowActions userId={t.id} status={t.status} />
+                        <TeacherRowActions
+                          userId={t.id}
+                          status={t.status}
+                          name={t.name}
+                          permissions={resolvePermissions(t.permissions)}
+                        />
                       </li>
                     ))}
                   </ul>

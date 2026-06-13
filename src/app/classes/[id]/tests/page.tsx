@@ -22,7 +22,7 @@ export default async function TestsTab({
 }) {
   const { id } = await params
   const { test: selectedId } = await searchParams
-  const { supabase } = await requireApproved()
+  const { supabase, permissions } = await requireApproved()
 
   const { data: testData } = await supabase
     .from('tests')
@@ -50,7 +50,7 @@ export default async function TestsTab({
     <div>
       <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">테스트 및 성적</h2>
 
-      <TestCreateForm classId={id} />
+      {permissions.scores && <TestCreateForm classId={id} />}
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 시험 목록 */}
@@ -85,17 +85,19 @@ export default async function TestsTab({
                           {t.test_date} · {t.full_score}점
                         </span>
                       </Link>
-                      <form action={deleteTest}>
-                        <input type="hidden" name="id" value={t.id} />
-                        <input type="hidden" name="class_id" value={id} />
-                        <button
-                          type="submit"
-                          className="ml-2 text-xs text-red-500 hover:underline"
-                          title="시험 삭제"
-                        >
-                          삭제
-                        </button>
-                      </form>
+                      {permissions.scores && (
+                        <form action={deleteTest}>
+                          <input type="hidden" name="id" value={t.id} />
+                          <input type="hidden" name="class_id" value={id} />
+                          <button
+                            type="submit"
+                            className="ml-2 text-xs text-red-500 hover:underline"
+                            title="시험 삭제"
+                          >
+                            삭제
+                          </button>
+                        </form>
+                      )}
                     </div>
                   </li>
                 )
@@ -118,6 +120,7 @@ export default async function TestsTab({
                 fullScore={Number(selected.full_score)}
                 students={students}
                 initial={initial}
+                canEdit={permissions.scores}
               />
             </div>
           ) : (

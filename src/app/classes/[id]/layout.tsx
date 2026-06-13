@@ -13,7 +13,7 @@ export default async function ClassLayout({
   children: React.ReactNode
 }) {
   const { id } = await params
-  const { supabase, isAdmin, profile } = await requireApproved()
+  const { supabase, isAdmin, profile, permissions } = await requireApproved()
 
   const { data: cls } = await supabase
     .from('classes')
@@ -50,7 +50,7 @@ export default async function ClassLayout({
       </p>
 
       <div className="mt-6">
-        <ClassTabs classId={id} isHomeworkEnabled={!isClinic} />
+        <ClassTabs classId={id} isHomeworkEnabled={!isClinic && permissions.homework} />
       </div>
 
       <div className="mt-8">{children}</div>
