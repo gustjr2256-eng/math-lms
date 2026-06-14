@@ -164,6 +164,13 @@ export type StudentAttendanceRow = {
   status: AttStatus
   progress: string | null
 }
+export type StudentTestRow = {
+  title: string
+  date: string
+  kind: string
+  score: number | null
+  fullScore: number
+}
 export type StudentDetail = {
   id: string
   name: string
@@ -172,8 +179,10 @@ export type StudentDetail = {
   status: StudentStatus
   parent_phone: string | null
   student_phone: string | null
-  cls: { name: string; subject: string; schedule: string; teacher: string } | null
+  // schedule(평문)은 호환용. days/time 은 요일 박스 렌더링용.
+  cls: { name: string; subject: string; schedule: string; days: string[]; time: string; teacher: string } | null
   attendance: StudentAttendanceRow[]
+  tests: StudentTestRow[]
 }
 
 export async function getStudentDetail(studentId: string): Promise<StudentDetail | null> {
@@ -194,6 +203,7 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
 
   let cls: StudentDetail['cls'] = null
   let attendance: StudentAttendanceRow[] = []
+  let tests: StudentTestRow[] = []
 
   if (s.class_id) {
     const { data: c } = await supabase
@@ -203,15 +213,22 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
       .maybeSingle()
     if (c) {
       const t = Array.isArray(c.teacher) ? c.teacher[0] : c.teacher
+      // "월,수,금" / "월·수·금" / "월 수 금" 등을 요일 배열로 분해
+      const days = String(c.day_of_week ?? '')
+        .split(/[,\s·/]+/)
+        .map((d) => d.trim())
+        .filter(Boolean)
       cls = {
         name: c.name,
         subject: c.subject,
         schedule: `${c.day_of_week} ${c.time}`,
+        days,
+        time: String(c.time ?? ''),
         teacher: (t as { name: string } | null)?.name ?? '미지정',
       }
     }
 
-    const [attRes, progRes] = await Promise.all([
+    const [attRes, progRes, testsRes] = await Promise.all([
       supabase
         .from('attendance')
         .select('date, status')
@@ -222,6 +239,12 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
         .from('progress')
         .select('date, textbook, chapter, page_from, page_to')
         .eq('class_id', s.class_id),
+      supabase
+        .from('tests')
+        .select('id, kind, title, test_date, full_score')
+        .eq('class_id', s.class_id)
+        .order('test_date', { ascending: false })
+        .limit(20),
     ])
 
     const progByDate = new Map<string, string>()
@@ -231,6 +254,26 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
       date: a.date,
       status: a.status as AttStatus,
       progress: progByDate.get(a.date) ?? null,
+    }))
+
+    // 해당 반 시험들 + 이 학생의 점수 매칭
+    const testRows = testsRes.data ?? []
+    const testIds = testRows.map((t) => t.id)
+    let scoreByTest = new Map<string, number>()
+    if (testIds.length > 0) {
+      const { data: scoreData } = await supabase
+        .from('test_scores')
+        .select('test_id, score')
+        .eq('student_id', studentId)
+        .in('test_id', testIds)
+      scoreByTest = new Map((scoreData ?? []).map((r) => [r.test_id, Number(r.score)]))
+    }
+    tests = testRows.map((t) => ({
+      title: t.title,
+      date: t.test_date,
+      kind: String(t.kind),
+      score: scoreByTest.has(t.id) ? scoreByTest.get(t.id)! : null,
+      fullScore: Number(t.full_score),
     }))
   }
 
@@ -244,6 +287,7 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
     student_phone: s.student_phone,
     cls,
     attendance,
+    tests,
   }
 }
 

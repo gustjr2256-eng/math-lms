@@ -16,7 +16,9 @@ const schema = z.object({
   body: z.string().trim().min(1, { message: '본문을 입력하세요.' }),
 })
 
-// ── 조회(승인자 전체): 현재 노출할 활성 공지 1건 ───────────────
+// ── 조회(승인자 전체): 메인 팝업용 통합공지 1건 ────────────────
+// 대시보드 자동 팝업은 '통합공지(target=all)' 중 마지막으로 등록한 활성 공지 1건만 띄운다.
+// (특정 반 공지는 우측 목록에만 노출하고 팝업으로는 띄우지 않는다.)
 export async function getActiveAnnouncement(): Promise<Announcement | null> {
   let supabase
   try {
@@ -28,6 +30,7 @@ export async function getActiveAnnouncement(): Promise<Announcement | null> {
     .from('announcements')
     .select('id, title, body, image_url, active, created_at, target, class_id, body_html')
     .eq('active', true)
+    .eq('target', 'all')
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
