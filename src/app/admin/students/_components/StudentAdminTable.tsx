@@ -7,9 +7,12 @@ import {
   STATUS_BADGE,
   type AdminStudent,
   type StudentStatus,
+  type School,
 } from '@/lib/students'
 import { deleteStudent, setStudentStatus, assignStudents } from '@/app/actions/students'
 import { StudentFormModal } from './StudentFormModal'
+import { SchoolManagerModal } from './SchoolManagerModal'
+import { StudentDetailModal } from './StudentDetailModal'
 
 type Cls = { id: string; name: string }
 type Filter = 'ALL' | StudentStatus
@@ -18,9 +21,11 @@ type GroupBy = 'none' | 'school' | 'grade'
 export function StudentAdminTable({
   students,
   classes,
+  schools,
 }: {
   students: AdminStudent[]
   classes: Cls[]
+  schools: School[]
 }) {
   const [filter, setFilter] = useState<Filter>('ALL')
   const [search, setSearch] = useState('')
@@ -31,6 +36,8 @@ export function StudentAdminTable({
   const [bulkClass, setBulkClass] = useState('')
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<AdminStudent | null>(null)
+  const [detail, setDetail] = useState<AdminStudent | null>(null)
+  const [managingSchools, setManagingSchools] = useState(false)
   const [pending, startTransition] = useTransition()
 
   const counts = useMemo(() => {
@@ -39,7 +46,8 @@ export function StudentAdminTable({
     return c
   }, [students])
 
-  const schools = useMemo(
+  // 필터 드롭다운용 — 실제 학생들이 가진 학교명 목록(학교 선택지 prop과 별개)
+  const studentSchools = useMemo(
     () => [...new Set(students.map((s) => s.school).filter((v): v is string => !!v))].sort(),
     [students]
   )
@@ -103,24 +111,24 @@ export function StudentAdminTable({
 
   // 공용 테이블 렌더(단일 / 그룹 공통)
   const tableEl = (rows: AdminStudent[]) => (
-    <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <table className="w-full min-w-[1000px] text-left text-sm">
-        <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <div className="overflow-x-auto app-card">
+      <table className="w-full min-w-[1000px] text-left text-[15px]">
+        <thead className="border-b border-zinc-200 bg-zinc-50 text-[13px] font-semibold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300">
           <tr>
-            <th className="w-10 px-4 py-3">
+            <th className="w-10 px-4 py-3.5">
               <input
                 type="checkbox"
                 checked={allChecked(rows)}
                 onChange={() => toggleAllRows(rows)}
               />
             </th>
-            <th className="px-4 py-3 font-medium">이름 / 학년·성별</th>
-            <th className="px-4 py-3 font-medium">학교</th>
-            <th className="px-4 py-3 font-medium">상태</th>
-            <th className="px-4 py-3 font-medium">배정 반</th>
-            <th className="px-4 py-3 font-medium">학생 연락처</th>
-            <th className="px-4 py-3 font-medium">학부모 연락처</th>
-            <th className="px-4 py-3 text-right font-medium">관리</th>
+            <th className="px-4 py-3.5">이름 / 학년·성별</th>
+            <th className="px-4 py-3.5">학교</th>
+            <th className="px-4 py-3.5">상태</th>
+            <th className="px-4 py-3.5">배정 반</th>
+            <th className="px-4 py-3.5">학생 연락처</th>
+            <th className="px-4 py-3.5">학부모 연락처</th>
+            <th className="px-4 py-3.5 text-right">관리</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/70">
@@ -133,26 +141,32 @@ export function StudentAdminTable({
           ) : (
             rows.map((s) => (
               <tr key={s.id} className={selected.has(s.id) ? 'bg-zinc-50 dark:bg-zinc-900/40' : ''}>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5">
                   <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
                 </td>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-zinc-900 dark:text-zinc-50">{s.name}</div>
-                  <div className="text-xs text-zinc-400">
+                <td className="px-4 py-3.5">
+                  <button
+                    type="button"
+                    onClick={() => setDetail(s)}
+                    className="text-left text-[15px] font-semibold text-zinc-900 hover:text-brand hover:underline dark:text-zinc-50 dark:hover:text-gold"
+                  >
+                    {s.name}
+                  </button>
+                  <div className="mt-0.5 text-[13px] text-zinc-500 dark:text-zinc-400">
                     {s.grade}
                     {s.gender ? ` · ${s.gender}` : ''}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{s.school ?? '—'}</td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5 text-zinc-700 dark:text-zinc-200">{s.school ?? '—'}</td>
+                <td className="px-4 py-3.5">
                   <StatusSelect id={s.id} value={s.status} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5">
                   <ClassSelect id={s.id} value={s.class_id} classes={classes} />
                 </td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{s.student_phone ?? '—'}</td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{s.parent_phone ?? '—'}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3.5 text-zinc-700 dark:text-zinc-200">{s.student_phone ?? '—'}</td>
+                <td className="px-4 py-3.5 text-zinc-700 dark:text-zinc-200">{s.parent_phone ?? '—'}</td>
+                <td className="px-4 py-3.5 text-right">
                   <div className="inline-flex gap-1">
                     <button
                       type="button"
@@ -194,13 +208,22 @@ export function StudentAdminTable({
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setCreating(true)}
-          className="mb-2 inline-flex h-9 items-center rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          + 학생 등록
-        </button>
+        <div className="mb-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setManagingSchools(true)}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            🏫 학교 관리
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="inline-flex h-9 items-center rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            + 학생 등록
+          </button>
+        </div>
       </div>
 
       {/* 검색 · 학교/학년 필터 · 구분(그룹) 보기 */}
@@ -217,7 +240,7 @@ export function StudentAdminTable({
           className="h-9 rounded-lg border border-zinc-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         >
           <option value="">전체 학교</option>
-          {schools.map((s) => (
+          {studentSchools.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -305,7 +328,7 @@ export function StudentAdminTable({
       ) : (
         <div className="mt-4 space-y-6">
           {groups!.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-400 dark:border-zinc-700">
+            <p className="app-card px-4 py-10 text-center text-sm text-zinc-400">
               조건에 맞는 학생이 없습니다.
             </p>
           ) : (
@@ -326,14 +349,30 @@ export function StudentAdminTable({
       )}
 
       {creating && (
-        <StudentFormModal mode="create" classes={classes} onClose={() => setCreating(false)} />
+        <StudentFormModal
+          mode="create"
+          classes={classes}
+          schools={schools}
+          onClose={() => setCreating(false)}
+        />
       )}
       {editing && (
         <StudentFormModal
           mode="edit"
           student={editing}
           classes={classes}
+          schools={schools}
           onClose={() => setEditing(null)}
+        />
+      )}
+      {managingSchools && (
+        <SchoolManagerModal schools={schools} onClose={() => setManagingSchools(false)} />
+      )}
+      {detail && (
+        <StudentDetailModal
+          studentId={detail.id}
+          fallbackName={detail.name}
+          onClose={() => setDetail(null)}
         />
       )}
     </div>

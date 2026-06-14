@@ -40,11 +40,11 @@ export default async function ProgressTab({
       <div className="mt-6">
         <h3 className="mb-2 text-sm font-medium text-zinc-500">진도 누적 ({rows.length}회)</h3>
         {rows.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-400 dark:border-zinc-700">
+          <p className="app-card px-4 py-10 text-center text-sm text-zinc-400">
             기록된 진도가 없습니다.
           </p>
         ) : (
-          <ul className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <ul className="overflow-hidden app-card">
             {rows.map((p) => (
               <li
                 key={p.id}

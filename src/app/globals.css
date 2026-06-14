@@ -99,6 +99,34 @@
   }
 }
 
+/* ============================================================
+ * 공통 컴포넌트 유틸
+ *   .app-card — 배경에서 '살짝 떠 보이는' 입체 카드(은은한 그림자 + ring).
+ *   색 토큰은 그대로 두고 shadow·ring 으로만 입체감을 준다(톤앤매너 유지).
+ *   라이트: 밝은 크림 카드 + soft shadow + 크림 라인 ring
+ *   다크:  네이비 surface(zinc-950) + 한 단계 진한 shadow + zinc-800 ring
+ * ============================================================ */
+@layer components {
+  .app-card {
+    @apply rounded-2xl bg-cream-card shadow-sm ring-1 ring-cream-line;
+  }
+  .dark .app-card {
+    @apply bg-zinc-950 shadow-md ring-zinc-800;
+  }
+
+  /* .app-card-hover — 마우스 위치를 알 수 있게 살짝 떠오르는 호버.
+   *   2px 상승 + 그림자 한 단계. 미관을 해치지 않는 수준. 대시보드 카드 전용. */
+  .app-card-hover {
+    @apply transition-all duration-200;
+  }
+  .app-card-hover:hover {
+    @apply -translate-y-0.5 shadow-md;
+  }
+  .dark .app-card-hover:hover {
+    @apply shadow-lg;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

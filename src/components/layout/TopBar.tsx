@@ -39,20 +39,6 @@ export function TopBar({
           {title}
         </h2>
 
-        {/* 검색창 (데스크탑) */}
-        <div className="ml-4 hidden max-w-md flex-1 md:block">
-          <label className="relative block">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-brand/40 dark:text-zinc-500">
-              <SearchIcon />
-            </span>
-            <input
-              type="search"
-              placeholder="검색 (학생, 반, 자료…)"
-              className="h-11 w-full rounded-xl border border-cream-line bg-cream-card pl-9 pr-3 font-pretendard text-sm text-brand outline-none placeholder:text-brand/40 focus:border-brand/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500"
-            />
-          </label>
-        </div>
-
         {/* 우측: 알림 · 토글 · 프로필 */}
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -86,15 +72,6 @@ export function TopBar({
         </div>
       </div>
     </header>
-  )
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="7" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
   )
 }
 

@@ -97,7 +97,7 @@ export default async function HomeworkTab({
         <div className="lg:col-span-1">
           <h3 className="mb-2 text-sm font-medium text-zinc-500">숙제 목록</h3>
           {homeworks.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-400 dark:border-zinc-700">
+            <p className="app-card px-4 py-8 text-center text-sm text-zinc-400">
               생성된 숙제가 없습니다.
             </p>
           ) : (
@@ -145,7 +145,7 @@ export default async function HomeworkTab({
         {/* 제출 현황 */}
         <div className="lg:col-span-2">
           {!selected ? (
-            <p className="rounded-2xl border border-dashed border-zinc-300 px-4 py-16 text-center text-sm text-zinc-400 dark:border-zinc-700">
+            <p className="app-card px-4 py-16 text-center text-sm text-zinc-400">
               왼쪽에서 숙제를 선택하면 제출 현황을 볼 수 있습니다.
             </p>
           ) : (
@@ -156,7 +156,7 @@ export default async function HomeworkTab({
               </h3>
 
               {submissions.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-zinc-300 px-4 py-12 text-center text-sm text-zinc-400 dark:border-zinc-700">
+                <p className="app-card px-4 py-12 text-center text-sm text-zinc-400">
                   아직 제출된 숙제가 없습니다.
                 </p>
               ) : (
@@ -164,7 +164,7 @@ export default async function HomeworkTab({
                   {submissions.map((sub) => (
                     <div
                       key={sub.id}
-                      className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+                      className="overflow-hidden app-card"
                     >
                       <a href={sub.image_url} target="_blank" rel="noopener noreferrer">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

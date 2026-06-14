@@ -45,7 +45,7 @@ export function ClassGrid({ classes, emptyText }: { classes: GridClass[]; emptyT
 
   if (classes.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-cream-line px-4 py-10 text-center text-sm text-brand/50 dark:border-zinc-700 dark:text-zinc-400">
+      <p className="app-card px-4 py-10 text-center text-sm text-brand/50 dark:text-zinc-400">
         {emptyText}
       </p>
     )

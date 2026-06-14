@@ -5,13 +5,16 @@ import {
   STUDENT_STATUSES,
   STATUS_LABEL,
   STUDENT_GENDERS,
+  STUDENT_GRADES,
   type AdminStudent,
+  type School,
 } from '@/lib/students'
 import {
   addStudent,
   updateStudent,
   type StudentFormState,
 } from '@/app/actions/students'
+import { PhoneInput } from '@/components/ui/PhoneInput'
 
 const inputCls =
   'h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100'
@@ -22,11 +25,13 @@ export function StudentFormModal({
   mode,
   student,
   classes,
+  schools,
   onClose,
 }: {
   mode: 'create' | 'edit'
   student?: AdminStudent
   classes: { id: string; name: string }[]
+  schools: School[]
   onClose: () => void
 }) {
   const action = mode === 'create' ? addStudent : updateStudent
@@ -38,6 +43,14 @@ export function StudentFormModal({
   useEffect(() => {
     if (state?.ok) onClose()
   }, [state, onClose])
+
+  // 수정 시 기존 학교명이 목록에 없으면 옵션으로 끼워 넣어 선택 유지(데이터 보존)
+  const schoolNames = schools.map((s) => s.name)
+  const currentSchool = student?.school ?? ''
+  const schoolOptions =
+    currentSchool && !schoolNames.includes(currentSchool)
+      ? [currentSchool, ...schoolNames]
+      : schoolNames
 
   return (
     <div
@@ -72,25 +85,39 @@ export function StudentFormModal({
             </div>
             <div>
               <label className={labelCls}>학년</label>
-              <input
+              <select
                 name="grade"
-                defaultValue={student?.grade}
-                placeholder="예: 중2"
+                defaultValue={student?.grade ?? ''}
                 className={`mt-1 ${inputCls}`}
                 required
-              />
+              >
+                <option value="" disabled>
+                  선택
+                </option>
+                {STUDENT_GRADES.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>학교</label>
-              <input
+              <select
                 name="school"
-                defaultValue={student?.school ?? ''}
-                placeholder="예: OO중학교"
+                defaultValue={currentSchool}
                 className={`mt-1 ${inputCls}`}
-              />
+              >
+                <option value="">선택 안 함</option>
+                {schoolOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className={labelCls}>성별</label>
@@ -133,19 +160,17 @@ export function StudentFormModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>학생 연락처</label>
-              <input
+              <PhoneInput
                 name="student_phone"
-                defaultValue={student?.student_phone ?? ''}
-                placeholder="010-…"
+                defaultValue={student?.student_phone}
                 className={`mt-1 ${inputCls}`}
               />
             </div>
             <div>
               <label className={labelCls}>학부모 연락처</label>
-              <input
+              <PhoneInput
                 name="parent_phone"
-                defaultValue={student?.parent_phone ?? ''}
-                placeholder="010-…"
+                defaultValue={student?.parent_phone}
                 className={`mt-1 ${inputCls}`}
               />
             </div>

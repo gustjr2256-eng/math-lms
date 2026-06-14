@@ -22,7 +22,7 @@ export function ClassCreateForm({ teachers }: { teachers: TeacherOption[] }) {
   }, [state])
 
   return (
-    <details className="rounded-2xl border border-cream-line bg-cream-card p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <details className="app-card p-5">
       <summary className="cursor-pointer font-pretendard text-sm font-semibold text-brand dark:text-zinc-50">
         + 새 반 만들기
       </summary>

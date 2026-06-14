@@ -61,7 +61,7 @@ export default async function ClassOverview({
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* 오늘 출석 현황 */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+      <section className="app-card p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
             오늘 출석 현황
@@ -95,7 +95,7 @@ export default async function ClassOverview({
       </section>
 
       {/* 최근 성적 그래프 */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+      <section className="app-card p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
             최근 성적 (반 평균)
@@ -139,7 +139,7 @@ export default async function ClassOverview({
       </section>
 
       {/* 현재 진도 */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 lg:col-span-2">
+      <section className="app-card p-6 lg:col-span-2">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">현재 진도</h2>
           <Link href={`/classes/${id}/progress`} className="text-xs text-zinc-500 hover:underline">

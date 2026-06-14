@@ -100,7 +100,7 @@ export function CalendarBoard({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="overflow-hidden app-card">
         {/* 요일 헤더 */}
         <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
           {WEEKDAYS.map((w, i) => (

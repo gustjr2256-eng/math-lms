@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { AppShell } from '@/components/layout/AppShell'
 import { AnnouncementAutoOpen } from '@/components/announcements/AnnouncementAutoOpen'
 import { WeeklyCalendar } from '@/components/dashboard/WeeklyCalendar'
+import { NoticeList } from '@/components/dashboard/NoticeList'
 import { EmptyState } from '@/components/layout/EmptyState'
+import { getActiveAnnouncements } from '@/app/actions/announcements'
 import type { Schedule } from '@/lib/calendar'
 import { thisWeekCells, buildClassStats, formatProgress } from '@/lib/dashboard'
 
@@ -117,6 +119,9 @@ export default async function DashboardPage() {
   const periods = allSched.filter((s) => s.type === 'period' && s.end_date >= weekStart && s.start_date <= weekEnd)
   const singles = allSched.filter((s) => s.type === 'single' && s.start_date >= weekStart && s.start_date <= weekEnd)
 
+  // 우측 공지 목록(활성 공지 최신순). 0010 미적용 시 빈 배열.
+  const notices = await getActiveAnnouncements()
+
   return (
     <AppShell name={profile?.name} isAdmin={isAdmin}>
       <AnnouncementAutoOpen />
@@ -128,20 +133,28 @@ export default async function DashboardPage() {
         {today} · 정규반 {classes.length}개 기준
       </p>
 
+      {/* 좌(2/3): 운영 현황 + 주간 일정 / 우(1/3): 공지 목록 */}
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <div className="space-y-6 lg:col-span-3">
       {/* 1) 정규반 당일 운영 현황 — 반·담당 + 출석률·진도·결석자 한 줄 */}
-      <section className="mt-8">
-        <h2 className="mb-3 font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
-          반별 당일 운영 현황
-        </h2>
-
+      <section>
         {rows.length === 0 ? (
-          <EmptyState
-            icon="📘"
-            title="표시할 정규반이 없습니다"
-            description={isAdmin ? '정규반을 먼저 생성하세요.' : '담당하는 정규반이 없습니다.'}
-          />
+          <>
+            <h2 className="mb-3 font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
+              반별 당일 운영 현황
+            </h2>
+            <EmptyState
+              icon="📘"
+              title="표시할 정규반이 없습니다"
+              description={isAdmin ? '정규반을 먼저 생성하세요.' : '담당하는 정규반이 없습니다.'}
+            />
+          </>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-cream-line bg-cream-card shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="app-card app-card-hover p-5">
+            <h2 className="mb-4 font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
+              반별 당일 운영 현황
+            </h2>
+            <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead className="border-b border-cream-line font-pretendard text-xs uppercase text-brand/50 dark:border-zinc-800 dark:text-zinc-500">
                 <tr>
@@ -218,13 +231,19 @@ export default async function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </section>
 
       {/* 2) 이번 주 학원 일정 (정규 캘린더, 기간막대 위 특정일 겹침) */}
-      <div className="mt-6">
-        <WeeklyCalendar cells={cells} periods={periods} singles={singles} today={today} />
+          <WeeklyCalendar cells={cells} periods={periods} singles={singles} today={today} />
+        </div>
+
+        {/* 우측: 클릭 가능한 공지사항 목록 */}
+        <div className="lg:col-span-1">
+          <NoticeList notices={notices} />
+        </div>
       </div>
     </AppShell>
   )

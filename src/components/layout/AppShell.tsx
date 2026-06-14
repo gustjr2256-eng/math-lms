@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { AnnouncementProvider } from '@/components/announcements/AnnouncementProvider'
 import { AnnouncementPopup } from '@/components/announcements/AnnouncementPopup'
+import { IdleLogout } from '@/components/auth/IdleLogout'
 
 // 전 페이지 공통 레이아웃 래퍼(MainLayout).
 //  - 데스크탑(md+): 좌측 고정 사이드바(280px) + 상단 헤더 + 메인
@@ -66,12 +67,15 @@ export function AppShell({
       <div className="md:pl-[280px]">
         <TopBar name={name} isAdmin={isAdmin} onMenuClick={() => setOpen(true)} />
         <main>
-          <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-10">{children}</div>
+          <div className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">{children}</div>
         </main>
       </div>
 
       {/* 메인 진입 공지 팝업 */}
       <AnnouncementPopup />
+
+      {/* 유휴 자동 로그아웃 (30분 무활동 → 경고 → 로그아웃) */}
+      <IdleLogout />
     </div>
     </AnnouncementProvider>
   )

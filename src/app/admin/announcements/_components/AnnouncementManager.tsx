@@ -39,7 +39,7 @@ export function AnnouncementManager({
 
       <div className="mt-4 space-y-3">
         {announcements.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-cream-line px-4 py-10 text-center font-pretendard text-sm text-brand/50 dark:border-zinc-700 dark:text-zinc-400">
+          <p className="app-card px-4 py-10 text-center font-pretendard text-sm text-brand/50 dark:text-zinc-400">
             아직 등록된 공지가 없습니다.
           </p>
         ) : (
@@ -75,7 +75,7 @@ function Row({ a, className }: { a: Announcement; className: string | null }) {
   }
 
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-cream-line bg-cream-card p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="flex items-start gap-4 app-card p-4">
       {a.image_url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={a.image_url} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />

@@ -117,7 +117,7 @@ export function MaterialsBrowser({
       </div>
 
       {/* 관리 테이블 */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="mt-6 overflow-hidden app-card">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/50">
             <tr>

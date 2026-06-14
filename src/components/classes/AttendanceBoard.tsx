@@ -92,11 +92,11 @@ export function AttendanceBoard({
       )}
 
       {students.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-400 dark:border-zinc-700">
+        <p className="app-card px-4 py-10 text-center text-sm text-zinc-400">
           이 반에 등록된 학생이 없습니다. 먼저 학생을 등록하세요.
         </p>
       ) : (
-        <ul className="divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+        <ul className="divide-y divide-zinc-100 overflow-hidden app-card dark:divide-zinc-800">
           {students.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div>

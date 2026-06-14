@@ -35,6 +35,25 @@ export async function getActiveAnnouncement(): Promise<Announcement | null> {
   return (data as Announcement | null) ?? null
 }
 
+// ── 조회(승인자 전체): 활성 공지 목록(최신순) ─────────────────
+// 대시보드 우측 공지 목록용. 내린(active=false) 공지는 노출하지 않는다.
+export async function getActiveAnnouncements(limit = 20): Promise<Announcement[]> {
+  let supabase
+  try {
+    ;({ supabase } = await requireApproved())
+  } catch {
+    return []
+  }
+  const { data } = await supabase
+    .from('announcements')
+    .select('id, title, body, image_url, active, created_at, target, class_id, body_html')
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  return (data as Announcement[] | null) ?? []
+}
+
 // ── 공지 등록(원장): 제목/본문 + 선택 이미지 ───────────────────
 export async function createAnnouncement(
   _prev: AnnouncementFormState,

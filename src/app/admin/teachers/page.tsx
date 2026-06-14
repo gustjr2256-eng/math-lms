@@ -58,7 +58,7 @@ export default async function TeachersAdminPage() {
                 <span className="text-xs text-brand/50 dark:text-zinc-400">{section.hint}</span>
               </div>
 
-              <div className="overflow-hidden rounded-xl border border-cream-line bg-cream-card dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="overflow-hidden app-card">
                 {rows.length === 0 ? (
                   <p className="px-4 py-6 text-center text-sm text-brand/50 dark:text-zinc-400">
                     해당하는 강사가 없습니다.

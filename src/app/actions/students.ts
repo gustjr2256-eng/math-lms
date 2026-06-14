@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/auth'
-import { STUDENT_STATUSES, STUDENT_GENDERS } from '@/lib/students'
+import { STUDENT_STATUSES, STUDENT_GENDERS, type StudentStatus } from '@/lib/students'
+import { formatProgress } from '@/lib/dashboard'
+import type { AttStatus } from '@/app/actions/attendance'
 
 // ============================================================
 // 학생 쓰기 작업은 전부 '원장(admin)' 전용이다.
@@ -154,6 +156,123 @@ export async function setStudentStatus(formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/students')
+}
+
+// ── 학생 상세(원장): 반/스케줄/담당강사 + 최근 출결 ───────────
+export type StudentAttendanceRow = {
+  date: string
+  status: AttStatus
+  progress: string | null
+}
+export type StudentDetail = {
+  id: string
+  name: string
+  grade: string
+  school: string | null
+  status: StudentStatus
+  parent_phone: string | null
+  student_phone: string | null
+  cls: { name: string; subject: string; schedule: string; teacher: string } | null
+  attendance: StudentAttendanceRow[]
+}
+
+export async function getStudentDetail(studentId: string): Promise<StudentDetail | null> {
+  let supabase
+  try {
+    ;({ supabase } = await requireAdmin())
+  } catch {
+    return null
+  }
+
+  // 원장은 students 전체 접근(실번호) — 뷰 아닌 원본 테이블
+  const { data: s } = await supabase
+    .from('students')
+    .select('id, name, grade, school, status, class_id, parent_phone, student_phone')
+    .eq('id', studentId)
+    .maybeSingle()
+  if (!s) return null
+
+  let cls: StudentDetail['cls'] = null
+  let attendance: StudentAttendanceRow[] = []
+
+  if (s.class_id) {
+    const { data: c } = await supabase
+      .from('classes')
+      .select('name, subject, day_of_week, time, teacher:users!classes_teacher_id_fkey(name)')
+      .eq('id', s.class_id)
+      .maybeSingle()
+    if (c) {
+      const t = Array.isArray(c.teacher) ? c.teacher[0] : c.teacher
+      cls = {
+        name: c.name,
+        subject: c.subject,
+        schedule: `${c.day_of_week} ${c.time}`,
+        teacher: (t as { name: string } | null)?.name ?? '미지정',
+      }
+    }
+
+    const [attRes, progRes] = await Promise.all([
+      supabase
+        .from('attendance')
+        .select('date, status')
+        .eq('student_id', studentId)
+        .order('date', { ascending: false })
+        .limit(10),
+      supabase
+        .from('progress')
+        .select('date, textbook, chapter, page_from, page_to')
+        .eq('class_id', s.class_id),
+    ])
+
+    const progByDate = new Map<string, string>()
+    for (const p of progRes.data ?? []) progByDate.set(p.date, formatProgress(p))
+
+    attendance = (attRes.data ?? []).map((a) => ({
+      date: a.date,
+      status: a.status as AttStatus,
+      progress: progByDate.get(a.date) ?? null,
+    }))
+  }
+
+  return {
+    id: s.id,
+    name: s.name,
+    grade: s.grade,
+    school: s.school,
+    status: s.status as StudentStatus,
+    parent_phone: s.parent_phone,
+    student_phone: s.student_phone,
+    cls,
+    attendance,
+  }
+}
+
+// 연락처만 빠르게 수정 (원장 전용, 상세 모달의 인라인 편집용)
+export async function updateStudentContacts(
+  _prev: StudentFormState,
+  formData: FormData
+): Promise<StudentFormState> {
+  let supabase
+  try {
+    ;({ supabase } = await requireAdmin())
+  } catch (e) {
+    return { error: (e as Error).message }
+  }
+
+  const id = formData.get('id')
+  if (typeof id !== 'string' || !id) return { error: '대상이 올바르지 않습니다.' }
+
+  const parent = String(formData.get('parent_phone') ?? '').trim() || null
+  const student = String(formData.get('student_phone') ?? '').trim() || null
+
+  const { error } = await supabase
+    .from('students')
+    .update({ parent_phone: parent, student_phone: student })
+    .eq('id', id)
+  if (error) return { error: '연락처 수정에 실패했습니다.' }
+
+  revalidatePath('/admin/students')
+  return { ok: true }
 }
 
 // 선택한 학생들을 특정 반에 일괄 배정/해제 (원장 전용)

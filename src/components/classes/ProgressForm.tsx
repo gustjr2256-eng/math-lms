@@ -22,7 +22,7 @@ export function ProgressForm({ classId, today }: { classId: string; today: strin
     <form
       ref={formRef}
       action={formAction}
-      className="grid grid-cols-2 gap-3 rounded-2xl border border-zinc-200 bg-white p-5 sm:grid-cols-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="grid grid-cols-2 gap-3 app-card p-5 sm:grid-cols-4"
     >
       <input type="hidden" name="class_id" value={classId} />
       <input name="date" type="date" defaultValue={today} className={inputCls} required />

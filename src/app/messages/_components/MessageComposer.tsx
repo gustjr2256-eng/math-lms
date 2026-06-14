@@ -93,7 +93,7 @@ export function MessageComposer({
       {/* 반별 그룹 */}
       <div className="mt-4 space-y-4">
         {groups.length === 0 && (
-          <p className="rounded-xl border border-dashed border-cream-line px-4 py-10 text-center font-pretendard text-sm text-brand/50 dark:border-zinc-700 dark:text-zinc-400">
+          <p className="app-card px-4 py-10 text-center font-pretendard text-sm text-brand/50 dark:text-zinc-400">
             재원(ACTIVE) 학생이 없습니다.
           </p>
         )}
@@ -104,7 +104,7 @@ export function MessageComposer({
           return (
             <div
               key={g.key}
-              className="overflow-hidden rounded-2xl border border-cream-line bg-cream-card dark:border-zinc-800 dark:bg-zinc-950"
+              className="overflow-hidden app-card"
             >
               <label className="flex items-center gap-2 border-b border-cream-line bg-brand-tint/40 px-4 py-2.5 font-pretendard text-sm font-semibold text-brand dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                 <GroupCheckbox checked={groupAll} indeterminate={groupSome && !groupAll} onChange={() => toggleGroup(g.rows)} />

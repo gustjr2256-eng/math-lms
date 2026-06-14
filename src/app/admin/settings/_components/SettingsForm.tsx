@@ -17,7 +17,7 @@ export function SettingsForm({ initial }: { initial: MessagingSettingsView }) {
   const connected = isMessagingConnected(initial)
 
   return (
-    <div className="mt-6 rounded-2xl border border-cream-line bg-cream-card p-6 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="mt-6 app-card p-6">
       <div className="flex items-center justify-between">
         <h2 className="font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
           솔라피(Solapi) 문자·알림톡

@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth'
 import { AppShell } from '@/components/layout/AppShell'
 import { AdminGuard } from '@/components/auth/AdminGuard'
 import { StudentAdminTable } from './_components/StudentAdminTable'
-import type { AdminStudent } from '@/lib/students'
+import type { AdminStudent, School } from '@/lib/students'
 
 // 원장 전용 [학생 통합 관리].
 // 보안: proxy(/admin/* 차단) + requireAdmin(서버) + AdminGuard(클라이언트) 삼중.
@@ -10,17 +10,21 @@ import type { AdminStudent } from '@/lib/students'
 export default async function StudentAdminPage() {
   const { supabase, profile } = await requireAdmin()
 
-  const [studentsRes, classesRes] = await Promise.all([
+  const [studentsRes, classesRes, schoolsRes] = await Promise.all([
     supabase
       .from('students')
       .select('id, name, grade, school, gender, status, class_id, student_phone, parent_phone, memo')
       .order('created_at', { ascending: false }),
     supabase.from('classes').select('id, name').order('name'),
+    // 0014 미적용 시 에러 → graceful 하게 빈 목록
+    supabase.from('schools').select('id, name').order('name'),
   ])
 
   const students = (studentsRes.data ?? []) as AdminStudent[]
   // 학생 반배정 드롭다운용 목록(정규·클리닉 모두 배정 가능)
   const classOptions = (classesRes.data ?? []) as { id: string; name: string }[]
+  // 학교 선택지(원장이 관리). 미적용/오류 시 빈 배열.
+  const schools = (schoolsRes.data ?? []) as School[]
 
   return (
     <AppShell name={profile?.name} isAdmin>
@@ -33,7 +37,7 @@ export default async function StudentAdminPage() {
         </p>
 
         <section className="mt-8">
-          <StudentAdminTable students={students} classes={classOptions} />
+          <StudentAdminTable students={students} classes={classOptions} schools={schools} />
         </section>
       </AdminGuard>
     </AppShell>

@@ -55,7 +55,7 @@ export function NotifyPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="app-card p-5">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
           미제출자 알림{' '}

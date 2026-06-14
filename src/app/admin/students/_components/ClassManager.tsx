@@ -38,16 +38,16 @@ export function ClassManager({
         </button>
       </div>
 
-      <div className="mt-3 overflow-x-auto rounded-2xl border border-cream-line bg-cream-card dark:border-zinc-800 dark:bg-zinc-950">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="border-b border-cream-line bg-cream/40 text-xs uppercase text-brand/60 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-500">
+      <div className="mt-3 overflow-x-auto app-card">
+        <table className="w-full min-w-[760px] text-left text-[15px]">
+          <thead className="border-b border-cream-line bg-cream/40 text-[13px] font-semibold text-brand/70 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300">
             <tr>
-              <th className="px-4 py-3 font-medium">반 이름</th>
-              <th className="px-4 py-3 font-medium">과목</th>
-              <th className="px-4 py-3 font-medium">요일 · 시간</th>
-              <th className="px-4 py-3 font-medium">담당 강사</th>
-              <th className="px-4 py-3 font-medium">학생</th>
-              <th className="px-4 py-3 text-right font-medium">관리</th>
+              <th className="px-4 py-3.5">반 이름</th>
+              <th className="px-4 py-3.5">과목</th>
+              <th className="px-4 py-3.5">요일 · 시간</th>
+              <th className="px-4 py-3.5">담당 강사</th>
+              <th className="px-4 py-3.5">학생</th>
+              <th className="px-4 py-3.5 text-right">관리</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-cream-line dark:divide-zinc-800/70">
@@ -60,14 +60,14 @@ export function ClassManager({
             ) : (
               classes.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-4 py-3 font-medium text-brand dark:text-zinc-50">{c.name}</td>
-                  <td className="px-4 py-3 text-brand/70 dark:text-zinc-300">{c.subject}</td>
-                  <td className="px-4 py-3 text-brand/70 dark:text-zinc-300">
+                  <td className="px-4 py-3.5 text-[15px] font-semibold text-brand dark:text-zinc-50">{c.name}</td>
+                  <td className="px-4 py-3.5 text-brand/85 dark:text-zinc-200">{c.subject}</td>
+                  <td className="px-4 py-3.5 text-brand/85 dark:text-zinc-200">
                     {c.day_of_week} · {c.time}
                   </td>
-                  <td className="px-4 py-3 text-brand/70 dark:text-zinc-300">{c.teacherName}</td>
-                  <td className="px-4 py-3 text-brand/70 dark:text-zinc-300">{c.studentCount}명</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3.5 text-brand/85 dark:text-zinc-200">{c.teacherName}</td>
+                  <td className="px-4 py-3.5 text-brand/85 dark:text-zinc-200">{c.studentCount}명</td>
+                  <td className="px-4 py-3.5 text-right">
                     <div className="inline-flex gap-1">
                       <button
                         type="button"

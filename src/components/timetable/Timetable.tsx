@@ -50,7 +50,7 @@ export function Timetable({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-cream-line bg-cream-card dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="overflow-x-auto app-card">
         <div className="min-w-[720px]">
           {/* 요일 헤더 */}
           <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-cream-line dark:border-zinc-800">

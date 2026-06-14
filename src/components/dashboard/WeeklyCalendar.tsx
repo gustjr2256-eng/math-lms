@@ -44,7 +44,7 @@ export function WeeklyCalendar({
   }
 
   return (
-    <section className="rounded-xl border border-cream-line bg-cream-card p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <section className="app-card app-card-hover p-5">
       <h2 className="font-paperozi text-base font-semibold text-brand dark:text-zinc-50">
         이번 주 학원 일정
       </h2>

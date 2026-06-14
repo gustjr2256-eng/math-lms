@@ -19,6 +19,13 @@ export const STATUS_BADGE: Record<StudentStatus, string> = {
 export const STUDENT_GENDERS = ['남', '여'] as const
 export type StudentGender = (typeof STUDENT_GENDERS)[number]
 
+// 학년 — 학생 등록/수정 드롭다운용 고정 목록
+export const STUDENT_GRADES = ['중1', '중2', '중3', '고1', '고2', '고3'] as const
+export type StudentGrade = (typeof STUDENT_GRADES)[number]
+
+// 학교(선택지) — schools 테이블 행
+export type School = { id: string; name: string }
+
 export type AdminStudent = {
   id: string
   name: string

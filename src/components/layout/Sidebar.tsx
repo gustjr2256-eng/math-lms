@@ -79,14 +79,14 @@ function NavAccordion({
         whileTap={{ scale: 0.98 }}
         transition={springHover}
         className={
-          'flex w-full items-center gap-2.5 rounded-xl px-3 py-2 font-paperozi text-xs font-bold uppercase tracking-wide transition-colors ' +
+          'flex w-full items-center gap-2.5 rounded-xl px-3 py-2 font-paperozi text-[13px] font-bold tracking-wide transition-colors ' +
           (groupActive
             ? 'text-brand dark:text-gold'
-            : 'text-brand/55 hover:bg-brand-tint dark:text-zinc-400 dark:hover:bg-zinc-800')
+            : 'text-brand/70 hover:bg-brand-tint dark:text-zinc-400 dark:hover:bg-zinc-800')
         }
         aria-expanded={open}
       >
-        <span className="text-sm">{group.icon}</span>
+        <group.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
         {group.label}
         <motion.span
           animate={{ rotate: open ? 90 : 0 }}
@@ -138,14 +138,17 @@ function MenuLink({
         transition={springHover}
         className={
           'flex items-center gap-3 rounded-xl px-3 font-pretendard font-semibold transition-colors ' +
-          (nested ? 'py-2 text-[13px]' : 'py-2.5 text-sm') +
+          (nested ? 'py-2 text-sm' : 'py-2.5 text-[15px]') +
           ' ' +
           (active
             ? 'bg-brand text-white shadow-sm dark:bg-gold dark:text-[#0a192f]'
-            : 'text-brand/80 hover:bg-brand-tint dark:text-zinc-300 dark:hover:bg-zinc-800')
+            : 'text-brand/90 hover:bg-brand-tint dark:text-zinc-300 dark:hover:bg-zinc-800')
         }
       >
-        <span className={nested ? 'text-sm' : 'text-base'}>{item.icon}</span>
+        <item.icon
+          className={(nested ? 'h-4 w-4' : 'h-[18px] w-[18px]') + ' shrink-0'}
+          strokeWidth={2}
+        />
         {item.label}
       </motion.div>
     </Link>

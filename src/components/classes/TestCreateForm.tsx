@@ -19,7 +19,7 @@ export function TestCreateForm({ classId }: { classId: string }) {
   }, [state])
 
   return (
-    <details className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <details className="app-card p-5">
       <summary className="cursor-pointer text-sm font-semibold text-zinc-900 dark:text-zinc-50">
         + 새 시험 만들기
       </summary>

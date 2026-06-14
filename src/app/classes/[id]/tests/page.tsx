@@ -57,7 +57,7 @@ export default async function TestsTab({
         <div className="lg:col-span-1">
           <h3 className="mb-2 text-sm font-medium text-zinc-500">시험 목록</h3>
           {tests.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-400 dark:border-zinc-700">
+            <p className="app-card px-4 py-8 text-center text-sm text-zinc-400">
               등록된 시험이 없습니다.
             </p>
           ) : (
@@ -109,7 +109,7 @@ export default async function TestsTab({
         {/* 점수 입력 그리드 */}
         <div className="lg:col-span-2">
           {selected ? (
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="app-card p-5">
               <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
                 {selected.title}{' '}
                 <span className="text-sm font-normal text-zinc-400">점수 입력</span>
@@ -124,7 +124,7 @@ export default async function TestsTab({
               />
             </div>
           ) : (
-            <p className="rounded-2xl border border-dashed border-zinc-300 px-4 py-16 text-center text-sm text-zinc-400 dark:border-zinc-700">
+            <p className="app-card px-4 py-16 text-center text-sm text-zinc-400">
               왼쪽에서 시험을 선택하면 학생별 점수를 입력할 수 있습니다.
             </p>
           )}
