@@ -4,15 +4,25 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requirePermission } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { homeworkStatus } from '@/lib/homework'
 
 export type HomeworkFormState = { error?: string; ok?: boolean } | undefined
 
-const homeworkSchema = z.object({
-  class_id: z.string().uuid(),
-  title: z.string().trim().min(1, { message: '과제명을 입력하세요.' }),
-  due_date: z.string().min(1, { message: '마감일을 선택하세요.' }),
-  description: z.string().trim().optional(),
-})
+const homeworkSchema = z
+  .object({
+    class_id: z.string().uuid(),
+    title: z.string().trim().min(1, { message: '과제명을 입력하세요.' }),
+    start_date: z
+      .string()
+      .optional()
+      .transform((v) => (v && v.length > 0 ? v : null)),
+    due_date: z.string().min(1, { message: '제출 종료일을 선택하세요.' }),
+    description: z.string().trim().optional(),
+  })
+  .refine((d) => !d.start_date || d.start_date <= d.due_date, {
+    message: '제출 시작일은 종료일보다 늦을 수 없습니다.',
+    path: ['start_date'],
+  })
 
 // ── 강사 시점 ───────────────────────────────────────────────
 
@@ -31,6 +41,7 @@ export async function createHomework(
   const parsed = homeworkSchema.safeParse({
     class_id: formData.get('class_id'),
     title: formData.get('title'),
+    start_date: formData.get('start_date') ?? undefined,
     due_date: formData.get('due_date'),
     description: formData.get('description') ?? undefined,
   })
@@ -41,6 +52,7 @@ export async function createHomework(
   const { error } = await supabase.from('homework').insert({
     class_id: parsed.data.class_id,
     title: parsed.data.title,
+    start_date: parsed.data.start_date,
     due_date: parsed.data.due_date,
     description: parsed.data.description || null,
   })
@@ -112,10 +124,17 @@ export async function submitHomework(
 
   const { data: hw } = await admin
     .from('homework')
-    .select('id, class_id')
+    .select('id, class_id, start_date, due_date')
     .eq('share_token', token)
     .maybeSingle()
   if (!hw) return { error: '존재하지 않거나 만료된 숙제입니다.' }
+
+  // 기간 종료 후에도 '지각 제출'은 허용한다(학생이 끝까지 제출하도록 유도).
+  // 단 기간 시작 전에는 받지 않는다. 종료 뒤 미제출 학생만 미제출자로 분류된다.
+  const status = homeworkStatus(hw.start_date as string | null, hw.due_date as string)
+  if (status === 'scheduled') {
+    return { error: '아직 제출 기간이 시작되지 않았습니다.' }
+  }
 
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
   const path = `${hw.id}/${globalThis.crypto.randomUUID()}.${ext}`

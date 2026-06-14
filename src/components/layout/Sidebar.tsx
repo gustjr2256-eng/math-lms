@@ -16,27 +16,45 @@ export function Sidebar({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?
 
   return (
     <div className="flex h-full w-[280px] flex-col bg-cream-deep dark:bg-zinc-950">
-      {/* 로고 — 클릭 시 메인('/')으로 이동 */}
-      <Link href="/" onClick={onNavigate} className="block px-5 py-5">
+      {/* 로고 — 클릭 시 메인('/')으로 이동.
+          라이트: r_logo.png / 다크: y_logo.png. drop-shadow + hover/tap 애니메이션으로 입체감. */}
+      <Link
+        href="/"
+        onClick={onNavigate}
+        aria-label="홈으로 이동"
+        className="group block px-6 pb-6 pt-7"
+      >
         <motion.div
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          transition={springHover}
-          className="flex items-center gap-2.5"
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="flex items-center justify-center"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-base font-bold text-white dark:bg-gold dark:text-[#0a192f]">
-            M
-          </div>
-          <div className="leading-tight">
-            <div className="font-paperozi text-base font-bold text-brand dark:text-cream">
-              수학학원 LMS
-            </div>
-            <div className="font-pretendard text-[11px] text-brand/60 dark:text-zinc-400">
-              {isAdmin ? '원장' : '강사'} 콘솔
-            </div>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/r_logo.png"
+            alt="수학학원 LMS"
+            className="block h-auto w-full object-contain dark:hidden"
+            style={{
+              filter:
+                'drop-shadow(0 3px 3px rgba(0,0,0,0.28)) drop-shadow(0 9px 16px rgba(0,0,0,0.16))',
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/y_logo.png"
+            alt="수학학원 LMS"
+            className="hidden h-auto w-full object-contain dark:block"
+            style={{
+              filter:
+                'drop-shadow(0 3px 4px rgba(0,0,0,0.55)) drop-shadow(0 10px 20px rgba(0,0,0,0.4))',
+            }}
+          />
         </motion.div>
       </Link>
+
+      {/* 로고 ↔ 메뉴 구분 + 간격 */}
+      <div className="mx-5 mb-3 border-b border-cream-line/70 dark:border-zinc-800/70" />
 
       {/* 메뉴 */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">

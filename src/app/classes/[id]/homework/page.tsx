@@ -5,15 +5,24 @@ import { deleteHomework, reviewSubmission } from '@/app/actions/homework'
 import { HomeworkForm } from '@/components/homework/HomeworkForm'
 import { ShareLink } from '@/components/homework/ShareLink'
 import { NotifyPanel } from '@/components/homework/NotifyPanel'
+import { homeworkStatus, STATUS_LABEL, daysUntilDue } from '@/lib/homework'
 
 type HomeworkRow = {
   id: string
   title: string
+  start_date: string | null
   due_date: string
   description: string | null
   share_token: string
   homework_submissions: { count: number }[]
 }
+
+// 상태별 배지 색
+const STATUS_BADGE = {
+  scheduled: 'bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400',
+  open: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  closed: 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400',
+} as const
 
 type Submission = {
   id: string
@@ -56,12 +65,13 @@ export default async function HomeworkTab({
 
   const { data: hwData } = await supabase
     .from('homework')
-    .select('id, title, due_date, description, share_token, homework_submissions(count)')
+    .select('id, title, start_date, due_date, description, share_token, homework_submissions(count)')
     .eq('class_id', id)
     .order('due_date', { ascending: false })
 
   const homeworks = (hwData ?? []) as unknown as HomeworkRow[]
   const selected = homeworks.find((h) => h.id === selectedId) ?? null
+  const selStatus = selected ? homeworkStatus(selected.start_date, selected.due_date) : 'open'
 
   let submissions: Submission[] = []
   let nonSubmitters: { id: string; name: string }[] = []
@@ -105,6 +115,8 @@ export default async function HomeworkTab({
               {homeworks.map((h) => {
                 const active = h.id === selectedId
                 const count = h.homework_submissions?.[0]?.count ?? 0
+                const status = homeworkStatus(h.start_date, h.due_date)
+                const dleft = daysUntilDue(h.due_date)
                 return (
                   <li
                     key={h.id}
@@ -117,11 +129,20 @@ export default async function HomeworkTab({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <Link href={`/classes/${id}/homework?hw=${h.id}`} className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                          {h.title}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <span className={'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ' + STATUS_BADGE[status]}>
+                            {status === 'open'
+                              ? dleft === 0
+                                ? '오늘 종료'
+                                : `진행중 D-${dleft}`
+                              : STATUS_LABEL[status]}
+                          </span>
+                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                            {h.title}
+                          </p>
+                        </div>
                         <p className="mt-0.5 text-xs text-zinc-400">
-                          마감 {h.due_date} · 제출 {count}건
+                          {h.start_date ? `${h.start_date} ~ ${h.due_date}` : `~ ${h.due_date}`} · 제출 {count}건
                         </p>
                       </Link>
                       <form action={deleteHomework}>
@@ -150,10 +171,43 @@ export default async function HomeworkTab({
             </p>
           ) : (
             <div>
-              <h3 className="mb-3 text-base font-semibold text-zinc-900 dark:text-zinc-50">
-                {selected.title}{' '}
-                <span className="text-sm font-normal text-zinc-400">제출 {submissions.length}건</span>
+              <h3 className="mb-3 flex flex-wrap items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                {selected.title}
+                <span className={'rounded-full px-2 py-0.5 text-[11px] font-semibold ' + STATUS_BADGE[selStatus]}>
+                  {STATUS_LABEL[selStatus]}
+                </span>
+                <span className="text-sm font-normal text-zinc-400">
+                  {selected.start_date ? `${selected.start_date} ~ ${selected.due_date}` : `~ ${selected.due_date}`} · 제출 {submissions.length}건
+                </span>
               </h3>
+
+              {/* 미제출자: 진행중이면 '제출 전 대기', 종료되면 '미제출 확정' */}
+              {selStatus !== 'scheduled' && nonSubmitters.length > 0 && (
+                <div
+                  className={
+                    'mb-4 rounded-xl border px-4 py-3 ' +
+                    (selStatus === 'closed'
+                      ? 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20'
+                      : 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20')
+                  }
+                >
+                  <p className="mb-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                    {selStatus === 'closed'
+                      ? `미제출 확정 ${nonSubmitters.length}명 (기간 종료)`
+                      : `제출 전 대기 ${nonSubmitters.length}명 (기간 진행중)`}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {nonSubmitters.map((st) => (
+                      <span
+                        key={st.id}
+                        className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-200 dark:ring-zinc-700"
+                      >
+                        {st.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {submissions.length === 0 ? (
                 <p className="app-card px-4 py-12 text-center text-sm text-zinc-400">
@@ -215,8 +269,17 @@ export default async function HomeworkTab({
                 </div>
               )}
 
+              {/* 문자 발송은 기간이 '종료'되어 미제출자가 확정된 뒤에만 가능 */}
               <div className="mt-6">
-                <NotifyPanel classId={id} homeworkId={selected.id} nonSubmitters={nonSubmitters} />
+                {selStatus === 'closed' ? (
+                  <NotifyPanel classId={id} homeworkId={selected.id} nonSubmitters={nonSubmitters} />
+                ) : (
+                  <p className="app-card px-4 py-6 text-center text-sm text-zinc-400">
+                    {selStatus === 'scheduled'
+                      ? '제출 기간이 시작되면 진행 상황이 표시됩니다.'
+                      : '제출 기간이 진행 중입니다. 종료일이 지나면 미제출자에게 문자를 보낼 수 있습니다.'}
+                  </p>
+                )}
               </div>
             </div>
           )}

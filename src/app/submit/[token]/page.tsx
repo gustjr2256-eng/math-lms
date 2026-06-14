@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { SubmitForm } from '@/components/homework/SubmitForm'
+import { homeworkStatus } from '@/lib/homework'
 
 // 제출 페이지 공통 카드 셸.
 function Shell({ children }: { children: React.ReactNode }) {
@@ -24,7 +25,7 @@ export default async function SubmitPage({
 
   const { data: hw } = await admin
     .from('homework')
-    .select('id, title, description, due_date, class_id, classes:class_id(name)')
+    .select('id, title, description, start_date, due_date, class_id, classes:class_id(name)')
     .eq('share_token', token)
     .maybeSingle()
 
@@ -48,6 +49,8 @@ export default async function SubmitPage({
 
   const cls = (hw as unknown as { classes: { name: string } | { name: string }[] | null }).classes
   const className = Array.isArray(cls) ? cls[0]?.name : cls?.name
+  const status = homeworkStatus(hw.start_date as string | null, hw.due_date as string)
+  const periodText = hw.start_date ? `${hw.start_date} ~ ${hw.due_date}` : `~ ${hw.due_date}`
 
   // 재원(ACTIVE) 학생만 이름 선택지에 노출 (퇴원/신규 제외)
   const { data: students } = await admin
@@ -67,10 +70,31 @@ export default async function SubmitPage({
         {hw.description && (
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{hw.description}</p>
         )}
-        <p className="mt-2 text-xs text-zinc-400">마감일: {hw.due_date}</p>
+        <p className="mt-2 text-xs text-zinc-400">제출 기간: {periodText}</p>
       </div>
 
-      <SubmitForm token={token} students={students ?? []} />
+      {status === 'scheduled' ? (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-8 text-center dark:border-sky-900/50 dark:bg-sky-950/30">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-2xl dark:bg-sky-900/50">
+            🗓️
+          </div>
+          <p className="text-sm font-semibold text-sky-700 dark:text-sky-300">
+            아직 제출 기간이 시작되지 않았습니다.
+          </p>
+          <p className="mt-1.5 text-xs text-sky-600 dark:text-sky-400">
+            {hw.start_date}부터 제출할 수 있습니다.
+          </p>
+        </div>
+      ) : (
+        <>
+          {status === 'closed' && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+              ⏰ 제출 기간({hw.due_date})이 지났지만 <b>늦게라도 제출</b>할 수 있어요. 지금 제출하면 미제출자에서 빠집니다.
+            </div>
+          )}
+          <SubmitForm token={token} students={students ?? []} />
+        </>
+      )}
     </Shell>
   )
 }

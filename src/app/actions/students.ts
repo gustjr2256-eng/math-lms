@@ -291,6 +291,35 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
   }
 }
 
+// ── 반별 소속 학생 목록(원장): 반 관리 아코디언 펼침용 ─────────
+export type ClassStudentRow = {
+  id: string
+  name: string
+  grade: string
+  status: StudentStatus
+}
+
+export async function getStudentsByClass(classId: string): Promise<ClassStudentRow[]> {
+  let supabase
+  try {
+    ;({ supabase } = await requireAdmin())
+  } catch {
+    return []
+  }
+  const { data } = await supabase
+    .from('students')
+    .select('id, name, grade, status')
+    .eq('class_id', classId)
+    .order('name')
+
+  return (data ?? []).map((s) => ({
+    id: s.id,
+    name: s.name,
+    grade: s.grade,
+    status: s.status as StudentStatus,
+  }))
+}
+
 // 연락처만 빠르게 수정 (원장 전용, 상세 모달의 인라인 편집용)
 export async function updateStudentContacts(
   _prev: StudentFormState,
